@@ -1,0 +1,16 @@
+# Spring Boot
+/backend/target/
+/backend/.mvn/
+/backend/mvnw
+/backend/mvnw.cmd
+
+# React (para el futuro)
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+
+# IDEs y SO
+.idea/
+.vscode/
+*.iml
+.DS_Store
