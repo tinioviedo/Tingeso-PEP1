@@ -5,6 +5,7 @@ import com.travelagency.backend.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,6 +48,7 @@ public class ClientController {
     }
 
     //read. Retorna todos los clientes (uso admin)
+    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<ClientEntity>> getAllClients() {
         List<ClientEntity> clients = clientService.getAllClients();
@@ -54,6 +56,7 @@ public class ClientController {
     }
 
     //delete. Desactiva lógicamente por ID (uso admin)
+    //@PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/{id}")
     public ResponseEntity<Void> deactivateClientById(@PathVariable Long id) {
         clientService.deactivateClientById(id);
