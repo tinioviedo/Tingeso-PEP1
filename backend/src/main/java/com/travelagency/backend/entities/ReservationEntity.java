@@ -31,10 +31,27 @@ public class ReservationEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime reservationDate;
+
+    @Column(nullable = false)
+    private Double baseAmount; //Precio multiplicado por la cantidad de descuento
+
+    @Column(nullable = false)
+    private Double discountAmount;
+
+    @Column(nullable = false)
+    private Double totalAmount;
+
+    @Column(length = 500)
+    private String appliedDiscounts; //String que documenta el descuento
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReservationStatus reservationStatus;
+
+    @PrePersist
+    protected void onCreate() {
+        this.reservationDate = LocalDateTime.now();
+    }
 }
