@@ -20,4 +20,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     List<ReservationEntity> findByReservationStatus(ReservationStatus status);
 
     long countByClient_IdAndReservationDateAfter(Long clientId, LocalDateTime date);
+
+    List<ReservationEntity> findByReservationStatusAndReservationDateBefore(
+            ReservationStatus status, LocalDateTime date);
 }

@@ -1,13 +1,16 @@
 package com.travelagency.backend.services;
 
 import com.travelagency.backend.entities.DiscountEntity;
+import com.travelagency.backend.entities.PromotionEntity;
 import com.travelagency.backend.enums.DiscountType;
 import com.travelagency.backend.enums.ReservationStatus;
 import com.travelagency.backend.repositories.DiscountRepository;
+import com.travelagency.backend.repositories.PromotionRepository;
 import com.travelagency.backend.repositories.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,8 @@ public class DiscountService {
 
     @Autowired
     private ReservationRepository reservationRepository;
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     public DiscountEntity createDiscount(DiscountEntity discount) {
         if (discountRepository.findByDiscountTypeAndActiveTrue(discount.getDiscountType()).isPresent()) {
@@ -108,6 +113,12 @@ public class DiscountService {
                 totalDiscountRate += multipleDiscount.get().getDiscountRate();
                 applied.add("Multiple packages discount: " + (int)(multipleDiscount.get().getDiscountRate() * 100) + "%");
             }
+        }
+        // PROMOTIONS — active in current date range
+        List<PromotionEntity> activePromotions = promotionRepository.findActivePromotions(LocalDate.now());
+        for (PromotionEntity promo : activePromotions) {
+            totalDiscountRate += promo.getDiscountRate();
+            applied.add("Promotion '" + promo.getName() + "': " + (int)(promo.getDiscountRate() * 100) + "%");
         }
         // Limite maximo 20%
         if (totalDiscountRate > MAX_TOTAL_DISCOUNT_RATE) {

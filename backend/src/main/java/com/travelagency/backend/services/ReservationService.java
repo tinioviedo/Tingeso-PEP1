@@ -7,8 +7,10 @@ import com.travelagency.backend.enums.PackageStatus;
 import com.travelagency.backend.enums.ReservationStatus;
 import com.travelagency.backend.repositories.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -125,5 +127,21 @@ public class ReservationService {
         return created;
     }
 
+    @Value("${reservation.expiration-hours}")
+    private int expirationHours;
+
+    public void expirePendingReservations() {
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(expirationHours);
+        List<ReservationEntity> expired = reservationRepository
+                .findByReservationStatusAndReservationDateBefore(ReservationStatus.PENDING, cutoff);
+
+        for (ReservationEntity reservation : expired) {
+            packageService.releaseSlots(
+                    reservation.getTravelPackage().getId(),
+                    reservation.getQuantity());
+            reservation.setReservationStatus(ReservationStatus.EXPIRED);
+            reservationRepository.save(reservation);
+        }
+    }
 
 }
