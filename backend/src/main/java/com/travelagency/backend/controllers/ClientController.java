@@ -26,6 +26,7 @@ public class ClientController {
 
     //read. retornar el perfil del cliente
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ClientEntity> getMyProfile(@PathVariable Long id) {
         ClientEntity client = clientService.getClientById(id);
         return ResponseEntity.ok(client);
@@ -33,6 +34,7 @@ public class ClientController {
 
     //update. Actualiza los datos del cliente
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ClientEntity> updateMyProfile(
             @PathVariable Long id,
             @RequestBody ClientEntity clientUpdates) {
@@ -42,6 +44,7 @@ public class ClientController {
 
     //delete. Desactiva lógicamente la cuenta del cliente.
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Boolean> deactivateMyAccount(@PathVariable Long id) {
         clientService.deactivateMyAccount(id);
         return ResponseEntity.noContent().build();
@@ -50,6 +53,7 @@ public class ClientController {
     //read. Retorna todos los clientes (uso admin)
     //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ClientEntity>> getAllClients() {
         List<ClientEntity> clients = clientService.getAllClients();
         return ResponseEntity.ok(clients);
@@ -58,6 +62,7 @@ public class ClientController {
     //delete. Desactiva lógicamente por ID (uso admin)
     //@PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivateClientById(@PathVariable Long id) {
         clientService.deactivateClientById(id);
         return ResponseEntity.noContent().build();

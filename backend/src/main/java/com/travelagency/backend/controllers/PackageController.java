@@ -23,7 +23,7 @@ public class PackageController {
     // POST /api/v1/packages/          → solo ADMIN
     // Crea un nuevo paquete turístico
     @PostMapping("/")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> savePackage(@RequestBody PackageEntity pkg) {
         return ResponseEntity.status(HttpStatus.CREATED).body(packageService.savePackage(pkg));
     }
@@ -31,7 +31,7 @@ public class PackageController {
     // GET /api/v1/packages/
     // Retorna todos los paquetes sin filtro de estado
     @GetMapping("/")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PackageEntity>> getAllPackages() {
         return ResponseEntity.ok(packageService.getAllPackages());
     }
@@ -67,7 +67,7 @@ public class PackageController {
     // PUT /api/v1/packages/{id}       → solo ADMIN
     // Actualiza datos de un paquete existente
     @PutMapping("/{id}")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> updatePackage(
             @PathVariable Long id,
             @RequestBody PackageEntity updates) {
@@ -80,7 +80,7 @@ public class PackageController {
     // PackageStatus.valueOf() convierte el String del JSON al Enum automáticamente
     // Si el string no existe en el Enum, Java lanza IllegalArgumentException solo
     @PatchMapping("/{id}/status")
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> changeStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {

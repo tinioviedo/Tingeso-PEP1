@@ -143,5 +143,11 @@ public class ReservationService {
             reservationRepository.save(reservation);
         }
     }
+    public ReservationEntity confirmReservation(Long reservationId) {
+        ReservationEntity reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+        reservation.setReservationStatus(ReservationStatus.CONFIRMED);
+        return reservationRepository.save(reservation);
+    }
 
 }

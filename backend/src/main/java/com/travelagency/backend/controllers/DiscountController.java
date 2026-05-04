@@ -5,6 +5,7 @@ import com.travelagency.backend.services.DiscountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,18 +21,21 @@ public class DiscountController {
 
     // POST /api/v1/discounts/
     @PostMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> createDiscount(@RequestBody DiscountEntity discount) {
         return ResponseEntity.status(HttpStatus.CREATED).body(discountService.createDiscount(discount));
     }
 
     // GET /api/v1/discounts/
     @GetMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DiscountEntity>> getAllDiscounts() {
         return ResponseEntity.ok(discountService.getAllDiscounts());
     }
 
     // PUT /api/v1/discounts/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> updateDiscount(
             @PathVariable Long id,
             @RequestBody DiscountEntity updates) {
@@ -40,6 +44,7 @@ public class DiscountController {
 
     // PATCH /api/v1/discounts/{id}/status
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> changeStatus(
             @PathVariable Long id,
             @RequestBody Map<String, Boolean> body) {
