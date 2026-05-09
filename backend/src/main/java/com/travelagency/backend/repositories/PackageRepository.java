@@ -11,13 +11,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface PackageRepository extends JpaRepository<PackageEntity, Long> {
-    //obtener todos los paquetes por su estado, Usado por el admin para ver todos los paquetes según su estado
     List<PackageEntity> findByPackageStatus(PackageStatus packageStatus);
-
-    //esto es de la epica 3 paquetes disponibles para clientes
-    //filtrar STATUS = AVAILABLE y que cupos >0, y que fecha inicio >= hoy
-    // epica 3: paquetes disponibles para clientes
-    //filtra: status=AVAILABLE, cupos > 0, fecha inicio >= hoy
+    //filtra status=AVAILABLE, cupos > 0, fecha inicio >= hoy
     @Query("SELECT p FROM PackageEntity p WHERE p.packageStatus = :status " +
             "AND p.availableSlots > 0 " +
             "AND p.startDate >= :today")
@@ -25,7 +20,7 @@ public interface PackageRepository extends JpaRepository<PackageEntity, Long> {
             @Param("status") PackageStatus status,
             @Param("today") LocalDate today);
 
-    // epica 3: búsqueda con filtros opcionales combinados
+    //búsqueda con filtros opcionales combinados
     //todos los parámetros son opcionales — si vienen null, no filtran
     @Query("SELECT p FROM PackageEntity p WHERE p.packageStatus = :status " +
             "AND p.availableSlots > 0 " +

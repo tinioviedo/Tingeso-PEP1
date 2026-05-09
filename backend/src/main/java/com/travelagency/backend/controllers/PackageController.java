@@ -20,7 +20,7 @@ public class PackageController {
     @Autowired
     PackageService packageService;
 
-    // POST /api/v1/packages/          → solo ADMIN
+    // POST /api/v1/packages/
     // Crea un nuevo paquete turístico
     @PostMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
@@ -64,7 +64,7 @@ public class PackageController {
                 packageService.searchPackage(destination, minPrice, maxPrice, tripType));
     }
 
-    // PUT /api/v1/packages/{id}       → solo ADMIN
+    // PUT /api/v1/packages/{id}
     // Actualiza datos de un paquete existente
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -74,7 +74,7 @@ public class PackageController {
         return ResponseEntity.ok(packageService.updatePackage(id, updates));
     }
 
-    // PATCH /api/v1/packages/{id}/status  → solo ADMIN
+    // PATCH /api/v1/packages/{id}/status
     // Cambia SOLO el estado del paquete
     // Body JSON: { "packageStatus": "CANCELLED" }
     // PackageStatus.valueOf() convierte el String del JSON al Enum automáticamente
