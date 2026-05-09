@@ -10,5 +10,6 @@ import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<ClientEntity, Long> {
     boolean existsByEmail(String email);
+    Optional<ClientEntity> findByEmail(String email);
 }
 

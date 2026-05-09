@@ -5,6 +5,15 @@ import Home from './pages/Home'
 import NotFound from './pages/NotFound'
 import AvailablePackages from './pages/AvailablePackages'
 import PackageDetail from './pages/PackageDetail'
+import MyReservations from './pages/MyReservations'
+import Profile from './pages/Profile'
+import AdminPackages from './pages/AdminPackages'
+import AdminClients from './pages/AdminClients'
+import AdminReservations from './pages/AdminReservations'
+import AdminDiscounts from './pages/AdminDiscounts'
+import AdminPromotions from './pages/AdminPromotions'
+import AdminReports from './pages/AdminReports'
+import RegisterProfile from './pages/RegisterProfile'
 
 function App() {
   const { keycloak, initialized } = useKeycloak()
@@ -40,6 +49,15 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/packages" element={<PrivateRoute element={<AvailablePackages />} rolesAllowed={["USER", "ADMIN"]} />} />
             <Route path="/packages/:id" element={<PrivateRoute element={<PackageDetail />} rolesAllowed={["USER", "ADMIN"]} />} />
+            <Route path="/my-reservations" element={<PrivateRoute element={<MyReservations />} rolesAllowed={["USER", "ADMIN"]} />} />
+            <Route path="/profile" element={<PrivateRoute element={<Profile />} rolesAllowed={["USER", "ADMIN"]} />} />
+            <Route path="/admin/packages" element={<PrivateRoute element={<AdminPackages />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin/clients" element={<PrivateRoute element={<AdminClients />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin/reservations" element={<PrivateRoute element={<AdminReservations />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin/discounts" element={<PrivateRoute element={<AdminDiscounts />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin/promotions" element={<PrivateRoute element={<AdminPromotions />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin/reports" element={<PrivateRoute element={<AdminReports />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/register-profile" element={<RegisterProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

@@ -86,4 +86,9 @@ public class ClientService {
         clientRepository.save(client);
         return true;
     }
+
+    public ClientEntity getClientByEmail(String email) {
+    return clientRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("Client not found with email: " + email));
+}
 }

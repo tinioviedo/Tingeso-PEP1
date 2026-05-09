@@ -14,9 +14,16 @@ const AvailablePackages = () => {
 
   const load = () => {
     setLoading(true)
-    const hasFilters = destination || minPrice || maxPrice || tripType
+    const hasFilters = destination || tripType || (minPrice && minPrice !== "") || (maxPrice && maxPrice !== "")
+
+    const params = {}
+    if (destination) params.destination = destination
+    if (tripType) params.tripType = tripType
+    if (minPrice && minPrice !== "") params.minPrice = minPrice
+    if (maxPrice && maxPrice !== "") params.maxPrice = maxPrice
+
     const call = hasFilters
-      ? packageService.search({ destination, minPrice, maxPrice, tripType })
+      ? packageService.search(params)
       : packageService.getAvailable()
     call
       .then(res => setPackages(res.data))

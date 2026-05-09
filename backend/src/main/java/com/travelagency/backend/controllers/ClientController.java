@@ -51,7 +51,6 @@ public class ClientController {
     }
 
     //read. Retorna todos los clientes (uso admin)
-    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ClientEntity>> getAllClients() {
@@ -60,11 +59,17 @@ public class ClientController {
     }
 
     //delete. Desactiva lógicamente por ID (uso admin)
-    //@PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivateClientById(@PathVariable Long id) {
         clientService.deactivateClientById(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/by-email")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ClientEntity> getClientByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(clientService.getClientByEmail(email));
+    }
 }
+
+
