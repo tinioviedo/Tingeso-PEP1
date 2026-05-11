@@ -26,30 +26,30 @@ const AdminDiscounts = () => {
             : discountService.create(form)
         call
             .then(() => {
-                setSuccess(editing ? "Discount updated." : "Discount created.")
+                setSuccess(editing ? "Descuento actualizado." : "Descuento creado.")
                 setShowForm(false)
                 setEditing(null)
                 setForm({ discountType: "GROUP", minThreshold: "", discountRate: "" })
                 load()
             })
-            .catch(err => setError(err.response?.data?.message || "Error saving discount."))
+            .catch(err => setError(err.response?.data?.message || "Error al guardar el descuento."))
     }
 
     const handleToggle = (id, active) => {
         discountService.changeStatus(id, !active)
-            .then(() => { setSuccess("Status updated."); load() })
+            .then(() => { setSuccess("Estado actualizado."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
     }
 
-    if (loading) return <p style={{ color: "#888" }}>Loading...</p>
+    if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
     return (
-        <div>
+        <div style={{ padding: "0 24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <h2 style={{ fontWeight: 500, margin: 0 }}>Discounts</h2>
+                <h2 style={{ fontWeight: 500, margin: 0 }}>Descuentos</h2>
                 <button onClick={() => { setShowForm(true); setEditing(null); setForm({ discountType: "GROUP", minThreshold: "", discountRate: "" }); setError(""); setSuccess("") }}
                     style={{ background: "#F58426", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                    + New discount
+                    + Nuevo descuento
                 </button>
             </div>
 
@@ -58,40 +58,40 @@ const AdminDiscounts = () => {
 
             {showForm && (
                 <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 24, marginBottom: 24 }}>
-                    <h3 style={{ fontWeight: 500, margin: "0 0 20px" }}>{editing ? "Edit discount" : "New discount"}</h3>
+                    <h3 style={{ fontWeight: 500, margin: "0 0 20px" }}>{editing ? "Editar descuento" : "Nuevo descuento"}</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
                         <div>
-                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>DISCOUNT TYPE</div>
+                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>TIPO DE DESCUENTO</div>
                             <select value={form.discountType} onChange={e => setForm(f => ({ ...f, discountType: e.target.value }))}
                                 style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14 }}>
-                                <option value="GROUP">Group</option>
-                                <option value="FREQUENT_CLIENT">Frequent client</option>
-                                <option value="MULTIPLE_PACKAGES">Multiple packages</option>
+                                <option value="GROUP">Grupal</option>
+                                <option value="FREQUENT_CLIENT">Cliente frecuente</option>
+                                <option value="MULTIPLE_PACKAGES">Múltiples paquetes</option>
                             </select>
                         </div>
                         <div>
-                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>MIN THRESHOLD</div>
+                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>MÍNIMO REQUERIDO</div>
                             <input type="number" value={form.minThreshold}
                                 onChange={e => setForm(f => ({ ...f, minThreshold: e.target.value }))}
-                                placeholder="e.g. 6"
+                                placeholder="Ej. 6"
                                 style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }} />
                         </div>
                         <div>
-                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>DISCOUNT RATE (0-1)</div>
+                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>TASA DE DESCUENTO (0-1)</div>
                             <input type="number" step="0.01" value={form.discountRate}
                                 onChange={e => setForm(f => ({ ...f, discountRate: e.target.value }))}
-                                placeholder="e.g. 0.10"
+                                placeholder="Ej. 0.10"
                                 style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }} />
                         </div>
                     </div>
                     <div style={{ display: "flex", gap: 10 }}>
                         <button onClick={handleSubmit}
                             style={{ background: "#F58426", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                            {editing ? "Save changes" : "Create"}
+                            {editing ? "Guardar cambios" : "Crear"}
                         </button>
                         <button onClick={() => { setShowForm(false); setEditing(null) }}
                             style={{ background: "#fff", border: "1px solid #ddd", padding: "10px 20px", borderRadius: 8, fontSize: 14, cursor: "pointer" }}>
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -99,7 +99,7 @@ const AdminDiscounts = () => {
 
             <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 120px", padding: "10px 16px", background: "#fafafa", borderBottom: "1px solid #eee", fontSize: 11, color: "#888", fontWeight: 500 }}>
-                    <span>TYPE</span><span>MIN THRESHOLD</span><span>RATE</span><span>STATUS</span><span>ACTIONS</span>
+                    <span>TIPO</span><span>MÍNIMO</span><span>TASA</span><span>ESTADO</span><span>ACCIONES</span>
                 </div>
                 {discounts.map(d => (
                     <div key={d.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 120px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
@@ -107,16 +107,16 @@ const AdminDiscounts = () => {
                         <span>{d.minThreshold}</span>
                         <span>{(d.discountRate * 100).toFixed(0)}%</span>
                         <span style={{ fontSize: 11, fontWeight: 500, color: d.active ? "#3B6D11" : "#A32D2D" }}>
-                            {d.active ? "Active" : "Inactive"}
+                            {d.active ? "Activo" : "Inactivo"}
                         </span>
                         <div style={{ display: "flex", gap: 6 }}>
                             <button onClick={() => { setForm(d); setEditing(d.id); setShowForm(true); setError(""); setSuccess("") }}
                                 style={{ background: "#006BB6", color: "#fff", border: "none", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
-                                Edit
+                                Editar
                             </button>
                             <button onClick={() => handleToggle(d.id, d.active)}
                                 style={{ background: "#fff", border: "1px solid #ddd", color: "#444", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
-                                {d.active ? "Disable" : "Enable"}
+                                {d.active ? "Desactivar" : "Activar"}
                             </button>
                         </div>
                     </div>

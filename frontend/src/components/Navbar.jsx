@@ -29,7 +29,7 @@ export default function Navbar() {
             onClick={() => keycloak.logout()}
             sx={{ backgroundColor: '#F58426', color: '#fff', borderRadius: '20px', px: 2, '&:hover': { backgroundColor: '#d4711f' } }}
           >
-            Logout
+            Cerrar sesión
           </Button>
         </Toolbar>
       </AppBar>

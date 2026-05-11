@@ -1,0 +1,64 @@
+services:
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: travelagency
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pescao
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - travelagency-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend1:
+    image: tinioviedo/travelagency-backend:latest
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: pescao
+      KEYCLOAK_HOST: host.docker.internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - travelagency-net
+
+  nginx-backend:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx-backend.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "1427:80"
+    depends_on:
+      - backend1
+    networks:
+      - travelagency-net
+
+  frontend1:
+    image: tinioviedo/travelagency-frontend:latest
+    networks:
+      - travelagency-net
+
+  nginx-frontend:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx-frontend.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8070:8070"
+    depends_on:
+      - frontend1
+    networks:
+      - travelagency-net
+
+volumes:
+  postgres_data:
+
+networks:
+  travelagency-net:

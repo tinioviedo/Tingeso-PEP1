@@ -31,44 +31,44 @@ export default function Sidemenu({ open, onClose }) {
       <List sx={{ width: 220, pt: 1 }}>
         <ListItemButton onClick={() => go('/home')} sx={itemStyle('/home')}>
           <ListItemIcon><HomeIcon sx={{ color: location.pathname === '/home' ? '#006BB6' : '#888' }} /></ListItemIcon>
-          <ListItemText primary="Home" />
+          <ListItemText primary="Inicio" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/packages')} sx={itemStyle('/packages')}>
           <ListItemIcon><FlightIcon sx={{ color: location.pathname.startsWith('/packages') ? '#006BB6' : '#888' }} /></ListItemIcon>
-          <ListItemText primary="Explore packages" />
+          <ListItemText primary="Explorar paquetes" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/my-reservations')} sx={itemStyle('/my-reservations')}>
           <ListItemIcon><BookOnlineIcon sx={{ color: location.pathname === '/my-reservations' ? '#006BB6' : '#888' }} /></ListItemIcon>
-          <ListItemText primary="My reservations" />
+          <ListItemText primary="Mis reservas" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/profile')} sx={itemStyle('/profile')}>
           <ListItemIcon><PersonIcon sx={{ color: location.pathname === '/profile' ? '#006BB6' : '#888' }} /></ListItemIcon>
-          <ListItemText primary="My profile" />
+          <ListItemText primary="Mi perfil" />
         </ListItemButton>
 
         {isAdmin && (
           <>
             <Divider sx={{ my: 1 }} />
             <ListItemButton onClick={() => go('/admin/packages')} sx={itemStyle('/admin/packages')}>
-              <ListItemText primary="Manage packages" sx={{ pl: 2 }} />
+              <ListItemText primary="Gestionar paquetes" sx={{ pl: 2 }} />
             </ListItemButton>
             <ListItemButton onClick={() => go('/admin/clients')} sx={itemStyle('/admin/clients')}>
-              <ListItemText primary="Manage clients" sx={{ pl: 2 }} />
+              <ListItemText primary="Gestionar clientes" sx={{ pl: 2 }} />
             </ListItemButton>
             <ListItemButton onClick={() => go('/admin/reservations')} sx={itemStyle('/admin/reservations')}>
-              <ListItemText primary="All reservations" sx={{ pl: 2 }} />
+              <ListItemText primary="Todas las reservas" sx={{ pl: 2 }} />
             </ListItemButton>
             <ListItemButton onClick={() => go('/admin/discounts')} sx={itemStyle('/admin/discounts')}>
-              <ListItemText primary="Discounts" sx={{ pl: 2 }} />
+              <ListItemText primary="Descuentos" sx={{ pl: 2 }} />
             </ListItemButton>
             <ListItemButton onClick={() => go('/admin/promotions')} sx={itemStyle('/admin/promotions')}>
-              <ListItemText primary="Promotions" sx={{ pl: 2 }} />
+              <ListItemText primary="Promociones" sx={{ pl: 2 }} />
             </ListItemButton>
             <ListItemButton onClick={() => go('/admin/reports')} sx={itemStyle('/admin/reports')}>
-              <ListItemText primary="Reports" sx={{ pl: 2 }} />
+              <ListItemText primary="Reportes" sx={{ pl: 2 }} />
             </ListItemButton>
           </>
         )}

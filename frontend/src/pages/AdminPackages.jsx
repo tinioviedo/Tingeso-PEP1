@@ -32,13 +32,13 @@ const AdminPackages = () => {
             : packageService.create(form)
         call
             .then(() => {
-                setSuccess(editing ? "Package updated." : "Package created.")
+                setSuccess(editing ? "Paquete actualizado." : "Paquete creado.")
                 setShowForm(false)
                 setEditing(null)
                 setForm(emptyForm)
                 load()
             })
-            .catch(err => setError(err.response?.data?.message || "Error saving package."))
+            .catch(err => setError(err.response?.data?.message || "Error al guardar el paquete."))
     }
 
     const handleEdit = (pkg) => {
@@ -51,21 +51,21 @@ const AdminPackages = () => {
 
     const handleChangeStatus = (id, status) => {
         packageService.changeStatus(id, status)
-            .then(() => { setSuccess("Status updated."); load() })
+            .then(() => { setSuccess("Estado actualizado."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
     }
 
     const statusColor = { AVAILABLE: "#3B6D11", SOLD_OUT: "#854F0B", NOT_VALID: "#5F5E5A", CANCELLED: "#A32D2D" }
 
-    if (loading) return <p style={{ color: "#888" }}>Loading...</p>
+    if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
     return (
-        <div>
+        <div style={{ padding: "0 24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                <h2 style={{ fontWeight: 500, margin: 0 }}>Manage packages</h2>
+                <h2 style={{ fontWeight: 500, margin: 0 }}>Gestionar paquetes</h2>
                 <button onClick={() => { setShowForm(true); setEditing(null); setForm(emptyForm); setError(""); setSuccess("") }}
                     style={{ background: "#F58426", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                    + New package
+                    + Nuevo paquete
                 </button>
             </div>
 
@@ -75,16 +75,16 @@ const AdminPackages = () => {
             {/* Form */}
             {showForm && (
                 <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 24, marginBottom: 24 }}>
-                    <h3 style={{ fontWeight: 500, margin: "0 0 20px" }}>{editing ? "Edit package" : "New package"}</h3>
+                    <h3 style={{ fontWeight: 500, margin: "0 0 20px" }}>{editing ? "Editar paquete" : "Nuevo paquete"}</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                         {[
-                            { label: "Package name", key: "packageName" },
-                            { label: "Destination", key: "destination" },
-                            { label: "Trip type", key: "tripType" },
-                            { label: "Price", key: "price", type: "number" },
-                            { label: "Total slots", key: "slots", type: "number" },
-                            { label: "Start date", key: "startDate", type: "date" },
-                            { label: "End date", key: "endDate", type: "date" },
+                            { label: "Nombre del paquete", key: "packageName" },
+                            { label: "Destino", key: "destination" },
+                            { label: "Tipo de viaje", key: "tripType" },
+                            { label: "Precio", key: "price", type: "number" },
+                            { label: "Cupos totales", key: "slots", type: "number" },
+                            { label: "Fecha de inicio", key: "startDate", type: "date" },
+                            { label: "Fecha de fin", key: "endDate", type: "date" },
                         ].map(f => (
                             <div key={f.key}>
                                 <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{f.label.toUpperCase()}</div>
@@ -98,9 +98,9 @@ const AdminPackages = () => {
                         ))}
                     </div>
                     {[
-                        { label: "Description", key: "description" },
-                        { label: "Included services", key: "includedServices" },
-                        { label: "Conditions", key: "conditions" },
+                        { label: "Descripción", key: "description" },
+                        { label: "Servicios incluidos", key: "includedServices" },
+                        { label: "Condiciones", key: "conditions" },
                     ].map(f => (
                         <div key={f.key} style={{ marginBottom: 16 }}>
                             <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{f.label.toUpperCase()}</div>
@@ -115,11 +115,11 @@ const AdminPackages = () => {
                     <div style={{ display: "flex", gap: 10 }}>
                         <button onClick={handleSubmit}
                             style={{ background: "#F58426", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                            {editing ? "Save changes" : "Create package"}
+                            {editing ? "Guardar cambios" : "Crear paquete"}
                         </button>
                         <button onClick={() => { setShowForm(false); setEditing(null); setForm(emptyForm) }}
                             style={{ background: "#fff", border: "1px solid #ddd", padding: "10px 20px", borderRadius: 8, fontSize: 14, cursor: "pointer" }}>
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -128,7 +128,7 @@ const AdminPackages = () => {
             {/* Table */}
             <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 160px", padding: "10px 16px", background: "#fafafa", borderBottom: "1px solid #eee", fontSize: 11, color: "#888", fontWeight: 500 }}>
-                    <span>PACKAGE</span><span>DESTINATION</span><span>PRICE</span><span>SLOTS</span><span>STATUS</span><span>ACTIONS</span>
+                    <span>PAQUETE</span><span>DESTINO</span><span>PRECIO</span><span>CUPOS</span><span>ESTADO</span><span>ACCIONES</span>
                 </div>
                 {packages.map(pkg => (
                     <div key={pkg.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 160px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
@@ -140,14 +140,14 @@ const AdminPackages = () => {
                         <div style={{ display: "flex", gap: 6 }}>
                             <button onClick={() => handleEdit(pkg)}
                                 style={{ background: "#006BB6", color: "#fff", border: "none", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
-                                Edit
+                                Editar
                             </button>
                             <select onChange={e => handleChangeStatus(pkg.id, e.target.value)} defaultValue=""
                                 style={{ fontSize: 11, padding: "5px 6px", borderRadius: 6, border: "1px solid #ddd", cursor: "pointer" }}>
-                                <option value="" disabled>Status</option>
-                                <option value="AVAILABLE">Available</option>
-                                <option value="NOT_VALID">Not valid</option>
-                                <option value="CANCELLED">Cancelled</option>
+                                <option value="" disabled>Estado</option>
+                                <option value="AVAILABLE">Disponible</option>
+                                <option value="NOT_VALID">No válido</option>
+                                <option value="CANCELLED">Cancelado</option>
                             </select>
                         </div>
                     </div>

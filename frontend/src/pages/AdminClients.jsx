@@ -17,24 +17,24 @@ const AdminClients = () => {
     useEffect(() => { load() }, [])
 
     const handleDeactivate = (id) => {
-        if (!window.confirm("Deactivate this client?")) return
+        if (!window.confirm("¿Desactivar este cliente?")) return
         clientService.deactivateAdmin(id)
-            .then(() => { setSuccess("Client deactivated."); load() })
+            .then(() => { setSuccess("Cliente desactivado."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
     }
 
-    if (loading) return <p style={{ color: "#888" }}>Loading...</p>
+    if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
     return (
-        <div>
-            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Manage clients</h2>
+        <div style={{ padding: "0 24px" }}>
+            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Gestionar clientes</h2>
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
 
             <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1fr 100px", padding: "10px 16px", background: "#fafafa", borderBottom: "1px solid #eee", fontSize: 11, color: "#888", fontWeight: 500 }}>
-                    <span>NAME</span><span>EMAIL</span><span>NATIONALITY</span><span>STATUS</span><span>ACTIONS</span>
+                    <span>NOMBRE</span><span>EMAIL</span><span>NACIONALIDAD</span><span>ESTADO</span><span>ACCIONES</span>
                 </div>
                 {clients.map(client => (
                     <div key={client.id} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1fr 100px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
@@ -48,13 +48,13 @@ const AdminClients = () => {
                             fontSize: 11, fontWeight: 500,
                             color: client.active ? "#3B6D11" : "#A32D2D"
                         }}>
-                            {client.active ? "Active" : "Inactive"}
+                            {client.active ? "Activo" : "Inactivo"}
                         </span>
                         <div>
                             {client.active && (
                                 <button onClick={() => handleDeactivate(client.id)}
                                     style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
-                                    Deactivate
+                                    Desactivar
                                 </button>
                             )}
                         </div>

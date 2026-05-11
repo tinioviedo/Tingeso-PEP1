@@ -24,24 +24,24 @@ const AdminReservations = () => {
     useEffect(() => { load() }, [])
 
     const handleCancel = (id) => {
-        if (!window.confirm("Cancel this reservation?")) return
+        if (!window.confirm("¿Cancelar esta reserva?")) return
         reservationService.cancel(id)
-            .then(() => { setSuccess("Reservation cancelled."); load() })
+            .then(() => { setSuccess("Reserva cancelada."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
     }
 
-    if (loading) return <p style={{ color: "#888" }}>Loading...</p>
+    if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
     return (
-        <div>
-            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>All reservations</h2>
+        <div style={{ padding: "0 24px" }}>
+            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Todas las reservas</h2>
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
 
             <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr 100px", padding: "10px 16px", background: "#fafafa", borderBottom: "1px solid #eee", fontSize: 11, color: "#888", fontWeight: 500 }}>
-                    <span>CLIENT</span><span>PACKAGE</span><span>PASSENGERS</span><span>TOTAL</span><span>STATUS</span><span>ACTIONS</span>
+                    <span>CLIENTE</span><span>PAQUETE</span><span>PASAJEROS</span><span>TOTAL</span><span>ESTADO</span><span>ACCIONES</span>
                 </div>
                 {reservations.map(res => (
                     <div key={res.id} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr 1fr 1fr 100px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
@@ -66,7 +66,7 @@ const AdminReservations = () => {
                             {res.reservationStatus === "PENDING" && (
                                 <button onClick={() => handleCancel(res.id)}
                                     style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
-                                    Cancel
+                                    Cancelar
                                 </button>
                             )}
                         </div>

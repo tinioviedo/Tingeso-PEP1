@@ -19,32 +19,32 @@ const RegisterProfile = () => {
     const handleSubmit = () => {
         setError("")
         if (!form.fullName || !form.email) {
-            setError("Full name and email are required.")
+            setError("El nombre completo y el email son obligatorios.")
             return
         }
         setLoading(true)
         clientService.create(form)
             .then(() => navigate("/home"))
-            .catch(err => setError(err.response?.data?.message || "Error creating profile."))
+            .catch(err => setError(err.response?.data?.message || "Error al crear el perfil."))
             .finally(() => setLoading(false))
     }
 
     return (
-        <div style={{ maxWidth: 500, margin: "60px auto" }}>
+        <div style={{ maxWidth: 500, margin: "60px auto", padding: "0 24px" }}>
             <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 32 }}>
-                <h2 style={{ fontWeight: 500, margin: "0 0 8px" }}>Complete your profile</h2>
+                <h2 style={{ fontWeight: 500, margin: "0 0 8px" }}>Completa tu perfil</h2>
                 <p style={{ color: "#888", fontSize: 14, margin: "0 0 24px" }}>
-                    Welcome! Please complete your information to continue.
+                    ¡Bienvenido! Por favor completa tu información para continuar.
                 </p>
 
                 {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
 
                 {[
-                    { label: "Full name", key: "fullName" },
+                    { label: "Nombre completo", key: "fullName" },
                     { label: "Email", key: "email", disabled: true },
-                    { label: "Phone", key: "phone" },
-                    { label: "ID Document", key: "idDocument" },
-                    { label: "Nationality", key: "nationality" },
+                    { label: "Teléfono", key: "phone" },
+                    { label: "Documento de identidad", key: "idDocument" },
+                    { label: "Nacionalidad", key: "nationality" },
                 ].map(f => (
                     <div key={f.key} style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>{f.label.toUpperCase()}</div>
@@ -66,7 +66,7 @@ const RegisterProfile = () => {
                     width: "100%", background: "#F58426", color: "#fff", border: "none",
                     padding: 14, borderRadius: 8, fontSize: 15, fontWeight: 500, cursor: "pointer", marginTop: 8
                 }}>
-                    {loading ? "Saving..." : "Save and continue"}
+                    {loading ? "Guardando..." : "Guardar y continuar"}
                 </button>
             </div>
         </div>

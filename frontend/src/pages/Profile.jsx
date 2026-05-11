@@ -13,7 +13,6 @@ const Profile = () => {
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
 
-
     const clientId = keycloak.tokenParsed?.sub
 
     useEffect(() => {
@@ -32,24 +31,24 @@ const Profile = () => {
             .then(res => {
                 setClient(res.data)
                 setEditing(false)
-                setSuccess("Profile updated successfully.")
+                setSuccess("Perfil actualizado correctamente.")
             })
-            .catch(err => setError(err.response?.data?.message || "Error updating profile."))
+            .catch(err => setError(err.response?.data?.message || "Error al actualizar el perfil."))
     }
 
     const handleDeactivate = () => {
-        if (!window.confirm("Are you sure you want to deactivate your account? This action cannot be undone.")) return
+        if (!window.confirm("¿Estás seguro de que quieres desactivar tu cuenta? Esta acción no se puede deshacer.")) return
         clientService.deactivate(client.id)
             .then(() => keycloak.logout())
-            .catch(err => setError(err.response?.data?.message || "Error deactivating account."))
+            .catch(err => setError(err.response?.data?.message || "Error al desactivar la cuenta."))
     }
 
-    if (loading) return <p style={{ color: "#888" }}>Loading...</p>
-    if (!client) return <p style={{ color: "#888" }}>Profile not found.</p>
+    if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
+    if (!client) return <p style={{ color: "#888" }}>Perfil no encontrado.</p>
 
     return (
-        <div style={{ maxWidth: 600 }}>
-            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>My profile</h2>
+        <div style={{ maxWidth: 600, padding: "0 24px" }}>
+            <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Mi perfil</h2>
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
@@ -73,10 +72,10 @@ const Profile = () => {
 
                 {/* Fields */}
                 {[
-                    { label: "Full name", key: "fullName" },
-                    { label: "Phone", key: "phone" },
-                    { label: "ID Document", key: "idDocument" },
-                    { label: "Nationality", key: "nationality" },
+                    { label: "Nombre completo", key: "fullName" },
+                    { label: "Teléfono", key: "phone" },
+                    { label: "Documento de identidad", key: "idDocument" },
+                    { label: "Nacionalidad", key: "nationality" },
                 ].map(field => (
                     <div key={field.key} style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>
@@ -98,7 +97,7 @@ const Profile = () => {
                 <div style={{ marginBottom: 24 }}>
                     <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>EMAIL</div>
                     <div style={{ fontSize: 15, color: "#999" }}>{client.email}</div>
-                    <div style={{ fontSize: 11, color: "#aaa" }}>Email cannot be changed</div>
+                    <div style={{ fontSize: 11, color: "#aaa" }}>El email no se puede modificar</div>
                 </div>
 
                 {/* Buttons */}
@@ -107,23 +106,23 @@ const Profile = () => {
                         <div style={{ display: "flex", gap: 10 }}>
                             <button onClick={handleUpdate}
                                 style={{ background: "#F58426", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                                Save changes
+                                Guardar cambios
                             </button>
                             <button onClick={() => { setEditing(false); setForm(client) }}
                                 style={{ background: "#fff", border: "1px solid #ddd", padding: "10px 20px", borderRadius: 8, fontSize: 14, cursor: "pointer" }}>
-                                Cancel
+                                Cancelar
                             </button>
                         </div>
                     ) : (
                         <button onClick={() => setEditing(true)}
                             style={{ background: "#006BB6", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-                            Edit profile
+                            Editar perfil
                         </button>
                     )}
 
                     <button onClick={handleDeactivate}
                         style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "10px 20px", borderRadius: 8, fontSize: 14, cursor: "pointer" }}>
-                        Deactivate account
+                        Desactivar cuenta
                     </button>
                 </div>
             </div>

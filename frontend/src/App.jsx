@@ -29,7 +29,7 @@ function App() {
       return null
     }
     if (rolesAllowed && !rolesAllowed.some(r => roles.includes(r))) {
-      return <h2>You don't have permission to view this page.</h2>
+      return <h2>No tienes permiso para ver esta página.</h2>
     }
     return element
   }
@@ -43,7 +43,7 @@ function App() {
     <Router>
       <div style={{ fontFamily: 'sans-serif' }}>
         <Navbar />
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: '24px 0' }}>
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />

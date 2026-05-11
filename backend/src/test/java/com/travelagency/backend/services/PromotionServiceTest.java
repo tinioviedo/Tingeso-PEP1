@@ -1,0 +1,251 @@
+package com.travelagency.backend.services;
+
+import com.travelagency.backend.entities.PromotionEntity;
+import com.travelagency.backend.repositories.PromotionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class PromotionServiceTest {
+
+    @InjectMocks
+    private PromotionService promotionService;
+
+    @Mock
+    private PromotionRepository promotionRepository;
+
+    private PromotionEntity validPromotion;
+
+    @BeforeEach
+    void setUp() {
+        validPromotion = new PromotionEntity();
+        validPromotion.setId(1L);
+        validPromotion.setName("Verano 2025");
+        validPromotion.setDiscountRate(0.15);
+        validPromotion.setStartDate(LocalDate.now().plusDays(1));
+        validPromotion.setEndDate(LocalDate.now().plusDays(30));
+        validPromotion.setActive(true);
+    }
+
+    // ── createPromotion ───────────────────────────────────────────────────────
+
+    @Test
+    void createPromotion_validPromotion_returnsSaved() {
+        // Given
+        when(promotionRepository.save(any())).thenReturn(validPromotion);
+
+        // When
+        PromotionEntity result = promotionService.createPromotion(validPromotion);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("Verano 2025");
+        assertThat(result.getActive()).isTrue();
+    }
+
+    @Test
+    void createPromotion_nullName_throwsIllegalArgument() {
+        // Given
+        validPromotion.setName(null);
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.createPromotion(validPromotion))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("name");
+    }
+
+    @Test
+    void createPromotion_rateZero_throwsIllegalArgument() {
+        // Given
+        validPromotion.setDiscountRate(0.0);
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.createPromotion(validPromotion))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("rate");
+    }
+
+    @Test
+    void createPromotion_rateNegative_throwsIllegalArgument() {
+        // Given — tasa negativa no permitida
+        validPromotion.setDiscountRate(-0.10);
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.createPromotion(validPromotion))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void createPromotion_endDateBeforeStartDate_throwsIllegalArgument() {
+        // Given
+        validPromotion.setEndDate(LocalDate.now());
+        validPromotion.setStartDate(LocalDate.now().plusDays(5));
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.createPromotion(validPromotion))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("End date");
+    }
+
+    @Test
+    void createPromotion_setsActiveTrue() {
+        // Given
+        validPromotion.setActive(false);
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.createPromotion(validPromotion);
+
+        // Then
+        assertThat(result.getActive()).isTrue();
+    }
+
+    // ── updatePromotion ───────────────────────────────────────────────────────
+
+    @Test
+    void updatePromotion_validName_updatesName() {
+        // Given
+        PromotionEntity updates = new PromotionEntity();
+        updates.setName("Invierno 2025");
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.updatePromotion(1L, updates);
+
+        // Then
+        assertThat(result.getName()).isEqualTo("Invierno 2025");
+    }
+
+    @Test
+    void updatePromotion_validRate_updatesRate() {
+        // Given
+        PromotionEntity updates = new PromotionEntity();
+        updates.setDiscountRate(0.20);
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.updatePromotion(1L, updates);
+
+        // Then
+        assertThat(result.getDiscountRate()).isEqualTo(0.20);
+    }
+
+    @Test
+    void updatePromotion_endDateBeforeStartDate_throwsIllegalArgument() {
+        // Given
+        PromotionEntity updates = new PromotionEntity();
+        updates.setEndDate(LocalDate.now().minusDays(10)); // antes del startDate existente
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.updatePromotion(1L, updates))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("End date");
+    }
+
+    @Test
+    void updatePromotion_nonExistingId_throwsIllegalArgument() {
+        // Given
+        when(promotionRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.updatePromotion(99L, new PromotionEntity()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void updatePromotion_blankName_doesNotUpdateName() {
+        // Given — nombre en blanco no sobreescribe el existente
+        PromotionEntity updates = new PromotionEntity();
+        updates.setName("   ");
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.updatePromotion(1L, updates);
+
+        // Then
+        assertThat(result.getName()).isEqualTo("Verano 2025");
+    }
+
+    // ── changeStatus (promotion) ──────────────────────────────────────────────
+
+    @Test
+    void changeStatus_deactivatePromotion_setsActiveFalse() {
+        // Given
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.changeStatus(1L, false);
+
+        // Then
+        assertThat(result.getActive()).isFalse();
+    }
+
+    @Test
+    void changeStatus_activatePromotion_setsActiveTrue() {
+        // Given
+        validPromotion.setActive(false);
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.changeStatus(1L, true);
+
+        // Then
+        assertThat(result.getActive()).isTrue();
+    }
+
+    @Test
+    void changeStatus_nonExistingId_throwsIllegalArgument() {
+        // Given
+        when(promotionRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> promotionService.changeStatus(99L, false))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void changeStatus_savesPromotion() {
+        // Given
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenReturn(validPromotion);
+
+        // When
+        promotionService.changeStatus(1L, false);
+
+        // Then
+        verify(promotionRepository).save(any());
+    }
+
+    @Test
+    void changeStatus_returnsUpdatedPromotion() {
+        // Given
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(validPromotion));
+        when(promotionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        PromotionEntity result = promotionService.changeStatus(1L, false);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("Verano 2025");
+    }
+}
