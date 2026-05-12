@@ -7,12 +7,14 @@ import AvailablePackages from './pages/AvailablePackages'
 import PackageDetail from './pages/PackageDetail'
 import MyReservations from './pages/MyReservations'
 import Profile from './pages/Profile'
+import AdminDashboard from './pages/AdminDashboard'
 import AdminPackages from './pages/AdminPackages'
 import AdminClients from './pages/AdminClients'
 import AdminReservations from './pages/AdminReservations'
 import AdminDiscounts from './pages/AdminDiscounts'
 import AdminPromotions from './pages/AdminPromotions'
 import AdminReports from './pages/AdminReports'
+import AdminLayout from './components/AdminLayout'
 import RegisterProfile from './pages/RegisterProfile'
 
 function App() {
@@ -51,12 +53,15 @@ function App() {
             <Route path="/packages/:id" element={<PrivateRoute element={<PackageDetail />} rolesAllowed={["USER", "ADMIN"]} />} />
             <Route path="/my-reservations" element={<PrivateRoute element={<MyReservations />} rolesAllowed={["USER", "ADMIN"]} />} />
             <Route path="/profile" element={<PrivateRoute element={<Profile />} rolesAllowed={["USER", "ADMIN"]} />} />
-            <Route path="/admin/packages" element={<PrivateRoute element={<AdminPackages />} rolesAllowed={["ADMIN"]} />} />
-            <Route path="/admin/clients" element={<PrivateRoute element={<AdminClients />} rolesAllowed={["ADMIN"]} />} />
-            <Route path="/admin/reservations" element={<PrivateRoute element={<AdminReservations />} rolesAllowed={["ADMIN"]} />} />
-            <Route path="/admin/discounts" element={<PrivateRoute element={<AdminDiscounts />} rolesAllowed={["ADMIN"]} />} />
-            <Route path="/admin/promotions" element={<PrivateRoute element={<AdminPromotions />} rolesAllowed={["ADMIN"]} />} />
-            <Route path="/admin/reports" element={<PrivateRoute element={<AdminReports />} rolesAllowed={["ADMIN"]} />} />
+            <Route path="/admin" element={<PrivateRoute element={<AdminLayout />} rolesAllowed={["ADMIN"]} />}>
+              <Route index element={<Navigate to="/admin/packages" replace />} />
+              <Route path="packages" element={<AdminPackages />} />
+              <Route path="clients" element={<AdminClients />} />
+              <Route path="reservations" element={<AdminReservations />} />
+              <Route path="discounts" element={<AdminDiscounts />} />
+              <Route path="promotions" element={<AdminPromotions />} />
+              <Route path="reports" element={<AdminReports />} />
+            </Route>
             <Route path="/register-profile" element={<RegisterProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

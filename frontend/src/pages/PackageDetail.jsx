@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useKeycloak } from "@react-keycloak/web"
 import packageService from "../services/package.service"
 import reservationService from "../services/reservation.service"
+import clientService from "../services/client.service"
 
 const PackageDetail = () => {
   const { id } = useParams()
@@ -25,15 +26,25 @@ const PackageDetail = () => {
   const handleReserve = () => {
     setError("")
     setSuccess("")
-    const clientId = keycloak.tokenParsed?.sub
-    if (!clientId) { setError("No se pudo identificar al usuario. Por favor inicia sesión nuevamente."); return }
+    const email = keycloak.tokenParsed?.email
+    if (!email) { setError("No se pudo identificar al usuario. Por favor inicia sesión nuevamente."); return }
     setReserving(true)
-    reservationService.create({ clientId, packageId: parseInt(id), quantity })
+    clientService.getByEmail(email)
+      .then(res => {
+        const clientId = res.data.id
+        return reservationService.create({ clientId, packageId: parseInt(id), quantity })
+      })
       .then(res => {
         setSuccess(`¡Reserva creada! Total: $${res.data.totalAmount.toLocaleString()}. ${res.data.appliedDiscounts ? "Descuentos: " + res.data.appliedDiscounts : ""}`)
         setTimeout(() => navigate("/my-reservations"), 2500)
       })
-      .catch(err => setError(err.response?.data?.message || "Error al crear la reserva."))
+      .catch(err => {
+        if (err.response?.status === 404 || err.response?.status === 400) {
+          setError(<span>Debes completar todos tus datos en <span onClick={() => navigate("/profile")} style={{ textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}>Mi perfil</span> antes de realizar una reserva.</span>)
+        } else {
+          setError(err.response?.data?.message || "Error al crear la reserva.")
+        }
+      })
       .finally(() => setReserving(false))
   }
 

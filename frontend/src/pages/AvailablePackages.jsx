@@ -410,6 +410,8 @@ const AvailablePackages = () => {
     tripType: searchParams.get("tripType") || "",
     minPrice: searchParams.get("minPrice") || "",
     maxPrice: searchParams.get("maxPrice") || "",
+    startDate: searchParams.get("startDate") || "",
+    endDate: searchParams.get("endDate") || "",
   })
 
   const activeFiltersCount = Object.values(filters).filter(v => v !== "").length
@@ -435,7 +437,13 @@ const AvailablePackages = () => {
       : packageService.getAvailable()
 
     call
-      .then(res => setPackages(res.data))
+      .then(res => {
+        let results = res.data
+        // Filter by date range client-side
+        if (f.startDate) results = results.filter(p => p.endDate >= f.startDate)
+        if (f.endDate) results = results.filter(p => p.startDate <= f.endDate)
+        setPackages(results)
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
   }

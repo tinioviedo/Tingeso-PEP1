@@ -108,6 +108,8 @@ const Home = () => {
   const navigate = useNavigate()
   const [destination, setDestination] = useState("")
   const [tripType, setTripType] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [featured, setFeatured] = useState([])
 
   useEffect(() => {
@@ -120,6 +122,8 @@ const Home = () => {
     const params = new URLSearchParams()
     if (destination) params.append("destination", destination)
     if (tripType) params.append("tripType", tripType)
+    if (startDate) params.append("startDate", startDate)
+    if (endDate) params.append("endDate", endDate)
     navigate(`/packages?${params.toString()}`)
   }
 
@@ -153,11 +157,11 @@ const Home = () => {
         <div style={{
           background: "#fff", borderRadius: 14, padding: "6px",
           display: "flex", alignItems: "stretch",
-          maxWidth: 600, margin: "0 auto",
+          maxWidth: 820, margin: "0 auto",
           boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
         }}>
           {/* Destination */}
-          <div style={{ flex: 1, padding: "10px 18px", borderRight: "1px solid #f0f0f0" }}>
+          <div style={{ flex: 1.2, padding: "10px 18px", borderRight: "1px solid #f0f0f0" }}>
             <div style={{ fontSize: 9, color: "#bbb", fontWeight: 700, letterSpacing: 0.8, marginBottom: 3 }}>
               DESTINO
             </div>
@@ -172,6 +176,37 @@ const Home = () => {
                 fontFamily: "'Poppins', sans-serif",
               }}
             />
+          </div>
+
+          {/* Date range */}
+          <div style={{ flex: 1.4, padding: "10px 18px", borderRight: "1px solid #f0f0f0" }}>
+            <div style={{ fontSize: 9, color: "#bbb", fontWeight: 700, letterSpacing: 0.8, marginBottom: 3 }}>
+              FECHAS
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => { setStartDate(e.target.value); if (endDate && e.target.value > endDate) setEndDate("") }}
+                style={{
+                  border: "none", outline: "none", fontSize: 13,
+                  color: startDate ? "#0A2540" : "#aaa", background: "transparent",
+                  fontFamily: "'Poppins', sans-serif", cursor: "pointer", width: "100%",
+                }}
+              />
+              <span style={{ color: "#ccc", fontSize: 12, flexShrink: 0 }}>→</span>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={e => setEndDate(e.target.value)}
+                style={{
+                  border: "none", outline: "none", fontSize: 13,
+                  color: endDate ? "#0A2540" : "#aaa", background: "transparent",
+                  fontFamily: "'Poppins', sans-serif", cursor: "pointer", width: "100%",
+                }}
+              />
+            </div>
           </div>
 
           {/* Trip type */}

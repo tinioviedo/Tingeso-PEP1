@@ -1,6 +1,32 @@
 import { useState, useEffect } from "react"
 import packageService from "../services/package.service"
 
+const TRIP_TYPES = ["Deportivo", "Cultural", "Musical", "Playa", "Naturaleza"]
+
+const COUNTRIES = [
+  "Afganistán","Albania","Alemania","Andorra","Angola","Arabia Saudita","Argelia","Argentina",
+  "Armenia","Australia","Austria","Azerbaiyán","Bahamas","Bangladés","Barbados","Baréin",
+  "Bélgica","Belice","Benín","Bielorrusia","Bolivia","Bosnia y Herzegovina","Botsuana","Brasil",
+  "Brunéi","Bulgaria","Burkina Faso","Burundi","Bután","Cabo Verde","Camboya","Camerún",
+  "Canadá","Catar","Chad","Chile","China","Chipre","Colombia","Comoras","Congo",
+  "Corea del Norte","Corea del Sur","Costa de Marfil","Costa Rica","Croacia","Cuba",
+  "Dinamarca","Dominica","Ecuador","Egipto","El Salvador","Emiratos Árabes Unidos","Eritrea",
+  "Eslovaquia","Eslovenia","España","Estados Unidos","Estonia","Etiopía","Fiyi","Filipinas",
+  "Finlandia","Francia","Gabón","Gambia","Georgia","Ghana","Granada","Grecia","Guatemala",
+  "Guinea","Guinea-Bisáu","Guinea Ecuatorial","Guyana","Haití","Honduras","Hungría","India",
+  "Indonesia","Irak","Irán","Irlanda","Islandia","Israel","Italia","Jamaica","Japón",
+  "Jordania","Kazajistán","Kenia","Kirguistán","Kuwait","Laos","Letonia","Líbano","Liberia",
+  "Libia","Liechtenstein","Lituania","Luxemburgo","Madagascar","Malasia","Malaui","Maldivas",
+  "Malí","Malta","Marruecos","Mauricio","Mauritania","México","Moldavia","Mónaco","Mongolia",
+  "Montenegro","Mozambique","Namibia","Nauru","Nepal","Nicaragua","Níger","Nigeria","Noruega",
+  "Nueva Zelanda","Omán","Países Bajos","Pakistán","Panamá","Paraguay","Perú","Polonia",
+  "Portugal","Reino Unido","República Checa","República Dominicana","Ruanda","Rumania",
+  "Rusia","Samoa","San Marino","Senegal","Serbia","Singapur","Siria","Somalia","Sri Lanka",
+  "Sudáfrica","Sudán","Suecia","Suiza","Surinam","Tailandia","Tanzania","Timor Oriental",
+  "Togo","Trinidad y Tobago","Túnez","Turquía","Ucrania","Uganda","Uruguay","Uzbekistán",
+  "Venezuela","Vietnam","Yemen","Zambia","Zimbabue"
+]
+
 const emptyForm = {
     packageName: "", destination: "", description: "",
     startDate: "", endDate: "", price: "", slots: "", tripType: "",
@@ -79,10 +105,9 @@ const AdminPackages = () => {
                 <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 24, marginBottom: 24 }}>
                     <h3 style={{ fontWeight: 500, margin: "0 0 20px" }}>{editing ? "Editar paquete" : "Nuevo paquete"}</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                        {/* Nombre */}
                         {[
                             { label: "Nombre del paquete", key: "packageName" },
-                            { label: "Destino", key: "destination" },
-                            { label: "Tipo de viaje", key: "tripType" },
                             { label: "Precio", key: "price", type: "number" },
                             { label: "Cupos totales", key: "slots", type: "number" },
                             { label: "Fecha de inicio", key: "startDate", type: "date" },
@@ -98,6 +123,30 @@ const AdminPackages = () => {
                                 />
                             </div>
                         ))}
+                        {/* Destino */}
+                        <div>
+                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>DESTINO</div>
+                            <select
+                                value={form.destination || ""}
+                                onChange={e => setForm(p => ({ ...p, destination: e.target.value }))}
+                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", background: "#fff" }}
+                            >
+                                <option value="">Selecciona un país...</option>
+                                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        {/* Tipo de viaje */}
+                        <div>
+                            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>TIPO DE VIAJE</div>
+                            <select
+                                value={form.tripType || ""}
+                                onChange={e => setForm(p => ({ ...p, tripType: e.target.value }))}
+                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit", background: "#fff" }}
+                            >
+                                <option value="">Selecciona un tipo...</option>
+                                {TRIP_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
                     </div>
                     {[
                         { label: "Descripción", key: "description" },

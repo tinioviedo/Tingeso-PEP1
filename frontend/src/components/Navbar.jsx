@@ -27,7 +27,7 @@ export default function Navbar() {
     { label: "Paquetes", path: "/packages" },
     { label: "Mis reservas", path: "/my-reservations" },
     { label: "Mi perfil", path: "/profile" },
-    ...(isAdmin ? [{ label: "Admin", path: "/admin/packages" }] : []),
+    ...(isAdmin ? [{ label: "Admin", path: "/admin" }] : []),
   ]
 
   const isActive = (path) =>

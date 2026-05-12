@@ -360,4 +360,266 @@ class ReservationServiceTest {
         // Then
         verify(reservationRepository, times(1)).save(reservation);
     }
+
+    // ── getMyReservations ─────────────────────────────────────────────────────
+
+    @Test
+    void getMyReservations_existingClient_returnsList() {
+        // Given
+        when(reservationRepository.findByClient_Id(1L)).thenReturn(List.of(reservation));
+
+        // When
+        List<ReservationEntity> result = reservationService.getMyReservations(1L);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getMyReservations_noReservations_returnsEmptyList() {
+        // Given
+        when(reservationRepository.findByClient_Id(1L)).thenReturn(List.of());
+
+        // When
+        List<ReservationEntity> result = reservationService.getMyReservations(1L);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getMyReservations_repositoryCalledWithCorrectClientId() {
+        // Given
+        when(reservationRepository.findByClient_Id(1L)).thenReturn(List.of());
+
+        // When
+        reservationService.getMyReservations(1L);
+
+        // Then
+        verify(reservationRepository).findByClient_Id(1L);
+    }
+
+    @Test
+    void getMyReservations_multipleReservations_allReturned() {
+        // Given
+        ReservationEntity res2 = new ReservationEntity();
+        res2.setId(200L);
+        when(reservationRepository.findByClient_Id(1L)).thenReturn(List.of(reservation, res2));
+
+        // When
+        List<ReservationEntity> result = reservationService.getMyReservations(1L);
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getMyReservations_returnsCorrectReservationId() {
+        // Given
+        when(reservationRepository.findByClient_Id(1L)).thenReturn(List.of(reservation));
+
+        // When
+        List<ReservationEntity> result = reservationService.getMyReservations(1L);
+
+        // Then
+        assertThat(result.get(0).getId()).isEqualTo(100L);
+    }
+
+    // ── getAllReservations ────────────────────────────────────────────────────
+
+    @Test
+    void getAllReservations_returnsAll() {
+        // Given
+        when(reservationRepository.findAll()).thenReturn(List.of(reservation));
+
+        // When
+        List<ReservationEntity> result = reservationService.getAllReservations();
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAllReservations_emptyRepository_returnsEmptyList() {
+        // Given
+        when(reservationRepository.findAll()).thenReturn(List.of());
+
+        // When
+        List<ReservationEntity> result = reservationService.getAllReservations();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAllReservations_repositoryCalled() {
+        // Given
+        when(reservationRepository.findAll()).thenReturn(List.of());
+
+        // When
+        reservationService.getAllReservations();
+
+        // Then
+        verify(reservationRepository).findAll();
+    }
+
+    @Test
+    void getAllReservations_multipleReservations_allReturned() {
+        // Given
+        ReservationEntity res2 = new ReservationEntity();
+        res2.setId(200L);
+        when(reservationRepository.findAll()).thenReturn(List.of(reservation, res2));
+
+        // When
+        List<ReservationEntity> result = reservationService.getAllReservations();
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getAllReservations_returnsCorrectStatus() {
+        // Given
+        when(reservationRepository.findAll()).thenReturn(List.of(reservation));
+
+        // When
+        List<ReservationEntity> result = reservationService.getAllReservations();
+
+        // Then
+        assertThat(result.get(0).getReservationStatus()).isEqualTo(ReservationStatus.PENDING);
+    }
+
+    // ── getReservationById ────────────────────────────────────────────────────
+
+    @Test
+    void getReservationById_existingId_returnsReservation() {
+        // Given
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        // When
+        ReservationEntity result = reservationService.getReservationById(100L);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(100L);
+    }
+
+    @Test
+    void getReservationById_nonExistingId_throwsIllegalArgument() {
+        // Given
+        when(reservationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> reservationService.getReservationById(999L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("999");
+    }
+
+    @Test
+    void getReservationById_repositoryCalledWithCorrectId() {
+        // Given
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        // When
+        reservationService.getReservationById(100L);
+
+        // Then
+        verify(reservationRepository).findById(100L);
+    }
+
+    @Test
+    void getReservationById_returnsCorrectClient() {
+        // Given
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        // When
+        ReservationEntity result = reservationService.getReservationById(100L);
+
+        // Then
+        assertThat(result.getClient().getFullName()).isEqualTo("Martin Perez");
+    }
+
+    @Test
+    void getReservationById_returnsCorrectPackage() {
+        // Given
+        when(reservationRepository.findById(100L)).thenReturn(Optional.of(reservation));
+
+        // When
+        ReservationEntity result = reservationService.getReservationById(100L);
+
+        // Then
+        assertThat(result.getTravelPackage().getPackageName()).isEqualTo("Viaje a Paris");
+    }
+
+    // ── createMultipleReservations ────────────────────────────────────────────
+
+    @Test
+    void createMultipleReservations_emptyItems_throwsIllegalArgument() {
+        // Given — lista vacía no permitida
+
+        // When / Then
+        assertThatThrownBy(() -> reservationService.createMultipleReservations(1L, List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("empty");
+    }
+
+    @Test
+    void createMultipleReservations_nullItems_throwsIllegalArgument() {
+        // Given — null no permitido
+
+        // When / Then
+        assertThatThrownBy(() -> reservationService.createMultipleReservations(1L, null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void createMultipleReservations_validSingleItem_returnsOneReservation() {
+        // Given
+        java.util.Map<String, Object> item = java.util.Map.of("packageId", "10", "quantity", "2");
+        DiscountService.DiscountResult noDiscount = new DiscountService.DiscountResult(0.0, 3000.0, "");
+        when(clientService.getActiveClientById(1L)).thenReturn(client);
+        when(packageService.getPackageById(10L)).thenReturn(pkg);
+        when(packageService.deductSlots(anyLong(), anyInt())).thenReturn(pkg);
+        when(discountService.calculate(anyLong(), anyInt(), anyDouble(), anyBoolean())).thenReturn(noDiscount);
+        when(reservationRepository.save(any())).thenReturn(reservation);
+
+        // When
+        List<ReservationEntity> result = reservationService.createMultipleReservations(1L, List.of(item));
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void createMultipleReservations_packageNotAvailable_throwsIllegalArgument() {
+        // Given
+        pkg.setPackageStatus(PackageStatus.SOLD_OUT);
+        java.util.Map<String, Object> item = java.util.Map.of("packageId", "10", "quantity", "2");
+        when(clientService.getActiveClientById(1L)).thenReturn(client);
+        when(packageService.getPackageById(10L)).thenReturn(pkg);
+
+        // When / Then
+        assertThatThrownBy(() -> reservationService.createMultipleReservations(1L, List.of(item)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not available");
+    }
+
+    @Test
+    void createMultipleReservations_twoItems_returnsTwoReservations() {
+        // Given
+        java.util.Map<String, Object> item1 = java.util.Map.of("packageId", "10", "quantity", "2");
+        java.util.Map<String, Object> item2 = java.util.Map.of("packageId", "10", "quantity", "1");
+        DiscountService.DiscountResult noDiscount = new DiscountService.DiscountResult(0.0, 3000.0, "");
+        when(clientService.getActiveClientById(1L)).thenReturn(client);
+        when(packageService.getPackageById(10L)).thenReturn(pkg);
+        when(packageService.deductSlots(anyLong(), anyInt())).thenReturn(pkg);
+        when(discountService.calculate(anyLong(), anyInt(), anyDouble(), anyBoolean())).thenReturn(noDiscount);
+        when(reservationRepository.save(any())).thenReturn(reservation);
+
+        // When
+        List<ReservationEntity> result = reservationService.createMultipleReservations(1L, List.of(item1, item2));
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
 }

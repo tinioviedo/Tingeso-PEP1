@@ -3,6 +3,44 @@ import { useKeycloak } from "@react-keycloak/web"
 import clientService from "../services/client.service"
 import { useNavigate } from "react-router-dom"
 
+const COUNTRIES = [
+  "Afganistán","Albania","Alemania","Andorra","Angola","Antigua y Barbuda","Arabia Saudita",
+  "Argelia","Argentina","Armenia","Australia","Austria","Azerbaiyán","Bahamas","Bangladés",
+  "Barbados","Baréin","Bélgica","Belice","Benín","Bielorrusia","Bolivia","Bosnia y Herzegovina",
+  "Botsuana","Brasil","Brunéi","Bulgaria","Burkina Faso","Burundi","Bután","Cabo Verde",
+  "Camboya","Camerún","Canadá","Catar","Chad","Chile","China","Chipre","Colombia","Comoras",
+  "Congo","Corea del Norte","Corea del Sur","Costa de Marfil","Costa Rica","Croacia","Cuba",
+  "Dinamarca","Dominica","Ecuador","Egipto","El Salvador","Emiratos Árabes Unidos","Eritrea",
+  "Eslovaquia","Eslovenia","España","Estados Unidos","Estonia","Etiopía","Fiyi","Filipinas",
+  "Finlandia","Francia","Gabón","Gambia","Georgia","Ghana","Granada","Grecia","Guatemala",
+  "Guinea","Guinea-Bisáu","Guinea Ecuatorial","Guyana","Haití","Honduras","Hungría","India",
+  "Indonesia","Irak","Irán","Irlanda","Islandia","Islas Marshall","Islas Salomón","Israel",
+  "Italia","Jamaica","Japón","Jordania","Kazajistán","Kenia","Kirguistán","Kiribati","Kuwait",
+  "Laos","Lesoto","Letonia","Líbano","Liberia","Libia","Liechtenstein","Lituania","Luxemburgo",
+  "Madagascar","Malasia","Malaui","Maldivas","Malí","Malta","Marruecos","Mauricio","Mauritania",
+  "México","Micronesia","Moldavia","Mónaco","Mongolia","Montenegro","Mozambique","Namibia",
+  "Nauru","Nepal","Nicaragua","Níger","Nigeria","Noruega","Nueva Zelanda","Omán","Países Bajos",
+  "Pakistán","Palaos","Palestina","Panamá","Papúa Nueva Guinea","Paraguay","Perú","Polonia",
+  "Portugal","Reino Unido","República Centroafricana","República Checa","República Dominicana",
+  "República del Congo","Ruanda","Rumania","Rusia","Samoa","San Cristóbal y Nieves",
+  "San Marino","San Vicente y las Granadinas","Santa Lucía","Santo Tomé y Príncipe","Senegal",
+  "Serbia","Seychelles","Sierra Leona","Singapur","Siria","Somalia","Sri Lanka","Suazilandia",
+  "Sudáfrica","Sudán","Sudán del Sur","Suecia","Suiza","Surinam","Tailandia","Tanzania",
+  "Tayikistán","Timor Oriental","Togo","Tonga","Trinidad y Tobago","Túnez","Turkmenistán",
+  "Turquía","Tuvalu","Ucrania","Uganda","Uruguay","Uzbekistán","Vanuatu","Venezuela",
+  "Vietnam","Yemen","Yibuti","Zambia","Zimbabue"
+]
+
+const formatRut = (value) => {
+  let clean = value.replace(/[^0-9kK]/g, "").toUpperCase()
+  if (clean.length === 0) return ""
+  if (clean.length > 9) clean = clean.slice(0, 9)
+  const dv = clean.slice(-1)
+  let body = clean.slice(0, -1)
+  body = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  return body ? `${body}-${dv}` : dv
+}
+
 const Profile = () => {
     const { keycloak } = useKeycloak()
     const navigate = useNavigate()
@@ -74,19 +112,36 @@ const Profile = () => {
                 {[
                     { label: "Nombre completo", key: "fullName" },
                     { label: "Teléfono", key: "phone" },
-                    { label: "Documento de identidad", key: "idDocument" },
                     { label: "Nacionalidad", key: "nationality" },
+                    { label: form.nationality === "Chile" ? "RUT" : "Documento de identidad (RUT / Pasaporte)", key: "idDocument" },
                 ].map(field => (
                     <div key={field.key} style={{ marginBottom: 16 }}>
                         <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>
                             {field.label.toUpperCase()}
                         </div>
                         {editing ? (
-                            <input
-                                value={form[field.key] || ""}
-                                onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
-                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
-                            />
+                            field.key === "nationality" ? (
+                                <select
+                                    value={form.nationality || ""}
+                                    onChange={e => setForm(f => ({ ...f, nationality: e.target.value, idDocument: "" }))}
+                                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }}
+                                >
+                                    <option value="">Selecciona tu país...</option>
+                                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            ) : (
+                                <input
+                                    value={form[field.key] || ""}
+                                    onChange={e => {
+                                        const val = field.key === "idDocument" && form.nationality === "Chile"
+                                            ? formatRut(e.target.value)
+                                            : e.target.value
+                                        setForm(f => ({ ...f, [field.key]: val }))
+                                    }}
+                                    placeholder={field.key === "idDocument" && form.nationality === "Chile" ? "Ej: 12.345.678-9" : ""}
+                                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+                                />
+                            )
                         ) : (
                             <div style={{ fontSize: 15, color: "#222" }}>{client[field.key] || "—"}</div>
                         )}

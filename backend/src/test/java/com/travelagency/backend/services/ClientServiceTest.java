@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -295,5 +296,193 @@ class ClientServiceTest {
 
         // Then
         verify(clientRepository).save(any());
+    }
+
+    // ── getAllClients ─────────────────────────────────────────────────────────
+
+    @Test
+    void getAllClients_returnsAllClients() {
+        // Given
+        when(clientRepository.findAll()).thenReturn(List.of(validClient));
+
+        // When
+        List<ClientEntity> result = clientService.getAllClients();
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAllClients_emptyRepository_returnsEmptyList() {
+        // Given
+        when(clientRepository.findAll()).thenReturn(List.of());
+
+        // When
+        List<ClientEntity> result = clientService.getAllClients();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAllClients_repositoryCalled() {
+        // Given
+        when(clientRepository.findAll()).thenReturn(List.of());
+
+        // When
+        clientService.getAllClients();
+
+        // Then
+        verify(clientRepository).findAll();
+    }
+
+    @Test
+    void getAllClients_multipleClients_allReturned() {
+        // Given
+        ClientEntity c2 = new ClientEntity();
+        c2.setId(2L);
+        when(clientRepository.findAll()).thenReturn(List.of(validClient, c2));
+
+        // When
+        List<ClientEntity> result = clientService.getAllClients();
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getAllClients_returnsCorrectEmail() {
+        // Given
+        when(clientRepository.findAll()).thenReturn(List.of(validClient));
+
+        // When
+        List<ClientEntity> result = clientService.getAllClients();
+
+        // Then
+        assertThat(result.get(0).getEmail()).isEqualTo("martin@test.com");
+    }
+
+    // ── deactivateClientById ──────────────────────────────────────────────────
+
+    @Test
+    void deactivateClientById_activeClient_returnsTrue() {
+        // Given
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(validClient));
+        when(clientRepository.save(any())).thenReturn(validClient);
+
+        // When
+        boolean result = clientService.deactivateClientById(1L);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void deactivateClientById_setsActiveToFalse() {
+        // Given
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(validClient));
+        when(clientRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        clientService.deactivateClientById(1L);
+
+        // Then
+        assertThat(validClient.getActive()).isFalse();
+    }
+
+    @Test
+    void deactivateClientById_nonExistingId_throwsIllegalArgument() {
+        // Given
+        when(clientRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> clientService.deactivateClientById(99L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void deactivateClientById_inactiveClient_throwsIllegalState() {
+        // Given
+        validClient.setActive(false);
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(validClient));
+
+        // When / Then
+        assertThatThrownBy(() -> clientService.deactivateClientById(1L))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void deactivateClientById_savesDeactivatedClient() {
+        // Given
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(validClient));
+        when(clientRepository.save(any())).thenReturn(validClient);
+
+        // When
+        clientService.deactivateClientById(1L);
+
+        // Then
+        verify(clientRepository).save(any());
+    }
+
+    // ── getClientByEmail ──────────────────────────────────────────────────────
+
+    @Test
+    void getClientByEmail_existingEmail_returnsClient() {
+        // Given
+        when(clientRepository.findByEmail("martin@test.com")).thenReturn(Optional.of(validClient));
+
+        // When
+        ClientEntity result = clientService.getClientByEmail("martin@test.com");
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("martin@test.com");
+    }
+
+    @Test
+    void getClientByEmail_nonExistingEmail_throwsIllegalArgument() {
+        // Given
+        when(clientRepository.findByEmail("noexiste@test.com")).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> clientService.getClientByEmail("noexiste@test.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("noexiste@test.com");
+    }
+
+    @Test
+    void getClientByEmail_repositoryCalledWithCorrectEmail() {
+        // Given
+        when(clientRepository.findByEmail("martin@test.com")).thenReturn(Optional.of(validClient));
+
+        // When
+        clientService.getClientByEmail("martin@test.com");
+
+        // Then
+        verify(clientRepository).findByEmail("martin@test.com");
+    }
+
+    @Test
+    void getClientByEmail_returnsCorrectName() {
+        // Given
+        when(clientRepository.findByEmail("martin@test.com")).thenReturn(Optional.of(validClient));
+
+        // When
+        ClientEntity result = clientService.getClientByEmail("martin@test.com");
+
+        // Then
+        assertThat(result.getFullName()).isEqualTo("Martin Perez");
+    }
+
+    @Test
+    void getClientByEmail_returnsActiveClient() {
+        // Given
+        when(clientRepository.findByEmail("martin@test.com")).thenReturn(Optional.of(validClient));
+
+        // When
+        ClientEntity result = clientService.getClientByEmail("martin@test.com");
+
+        // Then
+        assertThat(result.getActive()).isTrue();
     }
 }

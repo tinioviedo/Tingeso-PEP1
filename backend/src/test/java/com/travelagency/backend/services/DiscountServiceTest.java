@@ -285,4 +285,141 @@ class DiscountServiceTest {
         assertThat(result.totalAmount()).isEqualTo(1800.0);
         assertThat(result.appliedDiscounts()).contains("Verano");
     }
+
+    // ── getAllDiscounts ───────────────────────────────────────────────────────
+
+    @Test
+    void getAllDiscounts_returnsAllDiscounts() {
+        // Given
+        when(discountRepository.findAll()).thenReturn(List.of(groupDiscount));
+
+        // When
+        List<DiscountEntity> result = discountService.getAllDiscounts();
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAllDiscounts_emptyRepository_returnsEmptyList() {
+        // Given
+        when(discountRepository.findAll()).thenReturn(List.of());
+
+        // When
+        List<DiscountEntity> result = discountService.getAllDiscounts();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAllDiscounts_repositoryCalled() {
+        // Given
+        when(discountRepository.findAll()).thenReturn(List.of());
+
+        // When
+        discountService.getAllDiscounts();
+
+        // Then
+        verify(discountRepository).findAll();
+    }
+
+    @Test
+    void getAllDiscounts_multipleDiscounts_allReturned() {
+        // Given
+        DiscountEntity d2 = new DiscountEntity();
+        d2.setId(2L);
+        when(discountRepository.findAll()).thenReturn(List.of(groupDiscount, d2));
+
+        // When
+        List<DiscountEntity> result = discountService.getAllDiscounts();
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getAllDiscounts_returnsCorrectDiscountType() {
+        // Given
+        when(discountRepository.findAll()).thenReturn(List.of(groupDiscount));
+
+        // When
+        List<DiscountEntity> result = discountService.getAllDiscounts();
+
+        // Then
+        assertThat(result.get(0).getDiscountType()).isEqualTo(DiscountType.GROUP);
+    }
+
+    // ── updateDiscount ────────────────────────────────────────────────────────
+
+    @Test
+    void updateDiscount_validRate_updatesRate() {
+        // Given
+        DiscountEntity updates = new DiscountEntity();
+        updates.setDiscountRate(0.15);
+        when(discountRepository.findById(1L)).thenReturn(Optional.of(groupDiscount));
+        when(discountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        DiscountEntity result = discountService.updateDiscount(1L, updates);
+
+        // Then
+        assertThat(result.getDiscountRate()).isEqualTo(0.15);
+    }
+
+    @Test
+    void updateDiscount_validThreshold_updatesThreshold() {
+        // Given
+        DiscountEntity updates = new DiscountEntity();
+        updates.setMinThreshold(8.0);
+        when(discountRepository.findById(1L)).thenReturn(Optional.of(groupDiscount));
+        when(discountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        DiscountEntity result = discountService.updateDiscount(1L, updates);
+
+        // Then
+        assertThat(result.getMinThreshold()).isEqualTo(8.0);
+    }
+
+    @Test
+    void updateDiscount_nonExistingId_throwsIllegalArgument() {
+        // Given
+        when(discountRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> discountService.updateDiscount(99L, new DiscountEntity()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void updateDiscount_invalidRate_doesNotUpdate() {
+        // Given — tasa de 0 no debe sobreescribir la existente
+        DiscountEntity updates = new DiscountEntity();
+        updates.setDiscountRate(0.0);
+        when(discountRepository.findById(1L)).thenReturn(Optional.of(groupDiscount));
+        when(discountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        DiscountEntity result = discountService.updateDiscount(1L, updates);
+
+        // Then
+        assertThat(result.getDiscountRate()).isEqualTo(0.10); // sin cambio
+    }
+
+    @Test
+    void updateDiscount_savesUpdatedDiscount() {
+        // Given
+        DiscountEntity updates = new DiscountEntity();
+        updates.setDiscountRate(0.12);
+        when(discountRepository.findById(1L)).thenReturn(Optional.of(groupDiscount));
+        when(discountRepository.save(any())).thenReturn(groupDiscount);
+
+        // When
+        discountService.updateDiscount(1L, updates);
+
+        // Then
+        verify(discountRepository).save(any());
+    }
 }

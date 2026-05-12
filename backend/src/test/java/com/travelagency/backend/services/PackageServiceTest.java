@@ -482,4 +482,197 @@ class PackageServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("cupos");
     }
+
+    // ── getAllPackages ────────────────────────────────────────────────────────
+
+    @Test
+    void getAllPackages_returnsAllPackages() {
+        // Given
+        when(packageRepository.findAll()).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.getAllPackages();
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAllPackages_emptyRepository_returnsEmptyList() {
+        // Given
+        when(packageRepository.findAll()).thenReturn(List.of());
+
+        // When
+        List<PackageEntity> result = packageService.getAllPackages();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAllPackages_repositoryCalled() {
+        // Given
+        when(packageRepository.findAll()).thenReturn(List.of());
+
+        // When
+        packageService.getAllPackages();
+
+        // Then
+        verify(packageRepository).findAll();
+    }
+
+    @Test
+    void getAllPackages_multiplePackages_returnsAll() {
+        // Given
+        PackageEntity p2 = new PackageEntity();
+        p2.setId(2L);
+        when(packageRepository.findAll()).thenReturn(List.of(validPackage, p2));
+
+        // When
+        List<PackageEntity> result = packageService.getAllPackages();
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void getAllPackages_returnsCorrectPackageName() {
+        // Given
+        when(packageRepository.findAll()).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.getAllPackages();
+
+        // Then
+        assertThat(result.get(0).getPackageName()).isEqualTo("Viaje a Roma");
+    }
+
+    // ── getAvailablePackages ──────────────────────────────────────────────────
+
+    @Test
+    void getAvailablePackages_returnsAvailablePackages() {
+        // Given
+        when(packageRepository.findAvailablePackages(eq(PackageStatus.AVAILABLE), any(LocalDate.class)))
+                .thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.getAvailablePackages();
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAvailablePackages_noAvailable_returnsEmptyList() {
+        // Given
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of());
+
+        // When
+        List<PackageEntity> result = packageService.getAvailablePackages();
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAvailablePackages_repositoryCalledWithAvailableStatus() {
+        // Given
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of());
+
+        // When
+        packageService.getAvailablePackages();
+
+        // Then
+        verify(packageRepository).findAvailablePackages(eq(PackageStatus.AVAILABLE), any(LocalDate.class));
+    }
+
+    @Test
+    void getAvailablePackages_returnsOnlyAvailableStatus() {
+        // Given
+        when(packageRepository.findAvailablePackages(eq(PackageStatus.AVAILABLE), any()))
+                .thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.getAvailablePackages();
+
+        // Then
+        assertThat(result).allMatch(p -> p.getPackageStatus() == PackageStatus.AVAILABLE);
+    }
+
+    @Test
+    void getAvailablePackages_multiplePackages_allReturned() {
+        // Given
+        PackageEntity p2 = new PackageEntity();
+        p2.setPackageStatus(PackageStatus.AVAILABLE);
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage, p2));
+
+        // When
+        List<PackageEntity> result = packageService.getAvailablePackages();
+
+        // Then
+        assertThat(result).hasSize(2);
+    }
+
+    // ── searchPackage ─────────────────────────────────────────────────────────
+
+    @Test
+    void searchPackage_byDestination_filtersCorrectly() {
+        // Given
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.searchPackage("Roma", null, null, null);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDestination()).isEqualTo("Roma");
+    }
+
+    @Test
+    void searchPackage_destinationNoMatch_returnsEmpty() {
+        // Given
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.searchPackage("Paris", null, null, null);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void searchPackage_byMinPrice_packageBelowMin_returnsEmpty() {
+        // Given — precio del paquete es 1500, minPrice=2000 → no pasa el filtro
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.searchPackage(null, 2000.0, null, null);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void searchPackage_byMaxPrice_packageBelowMax_returnsPackage() {
+        // Given — precio del paquete es 1500, maxPrice=2000 → pasa el filtro
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.searchPackage(null, null, 2000.0, null);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void searchPackage_nullFilters_returnsAll() {
+        // Given
+        when(packageRepository.findAvailablePackages(any(), any())).thenReturn(List.of(validPackage));
+
+        // When
+        List<PackageEntity> result = packageService.searchPackage(null, null, null, null);
+
+        // Then
+        assertThat(result).hasSize(1);
+    }
 }
