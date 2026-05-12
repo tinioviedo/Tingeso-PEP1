@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PackageService {
@@ -71,10 +72,19 @@ public class PackageService {
         return packageRepository.findAvailablePackages(PackageStatus.AVAILABLE, LocalDate.now());
 
     }
-    // busqueda con filtros opcionales (epica 3)
+    // Búsqueda con filtros opcionales (Épica 3)
+    // Filtramos en memoria sobre los paquetes disponibles para evitar el bug
+    // conocido de JPQL con (:param IS NULL OR ...) y parámetros numéricos en PostgreSQL.
     public List<PackageEntity> searchPackage(String destination, Double minPrice, Double maxPrice, String tripType) {
-        return packageRepository.searchPackages(
-                PackageStatus.AVAILABLE, destination, minPrice, maxPrice, tripType, LocalDate.now());
+        return packageRepository.findAvailablePackages(PackageStatus.AVAILABLE, LocalDate.now())
+                .stream()
+                .filter(p -> destination == null || destination.isBlank() ||
+                        p.getDestination().toLowerCase().contains(destination.toLowerCase()))
+                .filter(p -> minPrice == null || p.getPrice() >= minPrice)
+                .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
+                .filter(p -> tripType == null || tripType.isBlank() ||
+                        (p.getTripType() != null && p.getTripType().equalsIgnoreCase(tripType)))
+                .collect(Collectors.toList());
     }
 
 

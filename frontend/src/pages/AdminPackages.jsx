@@ -50,9 +50,11 @@ const AdminPackages = () => {
     }
 
     const handleChangeStatus = (id, status) => {
+        setError("")
+        setSuccess("")
         packageService.changeStatus(id, status)
             .then(() => { setSuccess("Estado actualizado."); load() })
-            .catch(err => setError(err.response?.data?.message || "Error."))
+            .catch(err => setError(err.response?.data?.message || "No se pudo cambiar el estado. Verifica que el paquete tenga cupos disponibles."))
     }
 
     const statusColor = { AVAILABLE: "#3B6D11", SOLD_OUT: "#854F0B", NOT_VALID: "#5F5E5A", CANCELLED: "#A32D2D" }
@@ -142,9 +144,11 @@ const AdminPackages = () => {
                                 style={{ background: "#006BB6", color: "#fff", border: "none", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
                                 Editar
                             </button>
-                            <select onChange={e => handleChangeStatus(pkg.id, e.target.value)} defaultValue=""
+                            <select
+                                key={pkg.id + pkg.packageStatus}
+                                onChange={e => handleChangeStatus(pkg.id, e.target.value)}
+                                defaultValue={pkg.packageStatus}
                                 style={{ fontSize: 11, padding: "5px 6px", borderRadius: 6, border: "1px solid #ddd", cursor: "pointer" }}>
-                                <option value="" disabled>Estado</option>
                                 <option value="AVAILABLE">Disponible</option>
                                 <option value="NOT_VALID">No válido</option>
                                 <option value="CANCELLED">Cancelado</option>

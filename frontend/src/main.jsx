@@ -6,7 +6,7 @@ import { ReactKeycloakProvider } from "@react-keycloak/web";
 import keycloak from "./services/keycloak";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <ReactKeycloakProvider authClient={keycloak} initOptions={{ checkLoginIframe: false, onLoad: 'login-required' }}>
+  <ReactKeycloakProvider authClient={keycloak} initOptions={{ checkLoginIframe: false }}>
     <App />
   </ReactKeycloakProvider>
 )

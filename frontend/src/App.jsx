@@ -41,7 +41,7 @@ function App() {
 
   return (
     <Router>
-      <div style={{ fontFamily: 'sans-serif' }}>
+      <div style={{ fontFamily: "'Poppins', sans-serif" }}>
         <Navbar />
         <div style={{ padding: '24px 0' }}>
           <Routes>

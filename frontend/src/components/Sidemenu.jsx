@@ -21,31 +21,31 @@ export default function Sidemenu({ open, onClose }) {
   const go = (path) => { navigate(path); onClose() }
 
   const itemStyle = (path) => ({
-    borderLeft: location.pathname === path ? "3px solid #006BB6" : "3px solid transparent",
-    background: location.pathname.startsWith(path) && path !== "/" ? "#E6F1FB" : "transparent",
-    color: location.pathname.startsWith(path) && path !== "/" ? "#006BB6" : "inherit",
+    borderLeft: location.pathname === path ? "3px solid #0A2540" : "3px solid transparent",
+    background: location.pathname.startsWith(path) && path !== "/" ? "#EEF2F8" : "transparent",
+    color: location.pathname.startsWith(path) && path !== "/" ? "#0A2540" : "inherit",
   })
 
   return (
     <Drawer anchor="left" open={open} onClose={onClose}>
       <List sx={{ width: 220, pt: 1 }}>
         <ListItemButton onClick={() => go('/home')} sx={itemStyle('/home')}>
-          <ListItemIcon><HomeIcon sx={{ color: location.pathname === '/home' ? '#006BB6' : '#888' }} /></ListItemIcon>
+          <ListItemIcon><HomeIcon sx={{ color: location.pathname === '/home' ? '#0A2540' : '#888' }} /></ListItemIcon>
           <ListItemText primary="Inicio" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/packages')} sx={itemStyle('/packages')}>
-          <ListItemIcon><FlightIcon sx={{ color: location.pathname.startsWith('/packages') ? '#006BB6' : '#888' }} /></ListItemIcon>
+          <ListItemIcon><FlightIcon sx={{ color: location.pathname.startsWith('/packages') ? '#0A2540' : '#888' }} /></ListItemIcon>
           <ListItemText primary="Explorar paquetes" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/my-reservations')} sx={itemStyle('/my-reservations')}>
-          <ListItemIcon><BookOnlineIcon sx={{ color: location.pathname === '/my-reservations' ? '#006BB6' : '#888' }} /></ListItemIcon>
+          <ListItemIcon><BookOnlineIcon sx={{ color: location.pathname === '/my-reservations' ? '#0A2540' : '#888' }} /></ListItemIcon>
           <ListItemText primary="Mis reservas" />
         </ListItemButton>
 
         <ListItemButton onClick={() => go('/profile')} sx={itemStyle('/profile')}>
-          <ListItemIcon><PersonIcon sx={{ color: location.pathname === '/profile' ? '#006BB6' : '#888' }} /></ListItemIcon>
+          <ListItemIcon><PersonIcon sx={{ color: location.pathname === '/profile' ? '#0A2540' : '#888' }} /></ListItemIcon>
           <ListItemText primary="Mi perfil" />
         </ListItemButton>
 

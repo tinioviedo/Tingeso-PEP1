@@ -1,132 +1,287 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import packageService from "../services/package.service"
+import { getPackageImage, getFallbackGradient } from "../utils/packageImages"
 
+/* ── Featured card (full bleed image) ────────────────────── */
+const FeaturedCard = ({ pkg, onClick }) => {
+  const [imgError, setImgError] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const imageUrl = getPackageImage(pkg.destination)
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "relative", height: 380, borderRadius: 16,
+        overflow: "hidden", cursor: "pointer",
+        boxShadow: hovered
+          ? "0 24px 48px rgba(10,37,64,0.22)"
+          : "0 4px 16px rgba(10,37,64,0.10)",
+        transform: hovered ? "translateY(-6px)" : "translateY(0)",
+        transition: "transform 0.28s ease, box-shadow 0.28s ease",
+      }}
+    >
+      {/* Background */}
+      {imageUrl && !imgError ? (
+        <img
+          src={imageUrl}
+          alt={pkg.destination}
+          onError={() => setImgError(true)}
+          style={{
+            width: "100%", height: "100%", objectFit: "cover",
+            position: "absolute", inset: 0,
+            transform: hovered ? "scale(1.06)" : "scale(1)",
+            transition: "transform 0.5s ease",
+          }}
+        />
+      ) : (
+        <div style={{
+          width: "100%", height: "100%", position: "absolute", inset: 0,
+          background: getFallbackGradient(pkg.destination),
+        }} />
+      )}
+
+      {/* Overlay */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(to top, rgba(10,37,64,0.90) 0%, rgba(10,37,64,0.15) 55%, transparent 100%)",
+      }} />
+
+      {/* Price */}
+      <div style={{
+        position: "absolute", top: 14, right: 14,
+        background: "#F97316", color: "#fff",
+        padding: "5px 12px", borderRadius: 20,
+        fontSize: 13, fontWeight: 700,
+        boxShadow: "0 3px 10px rgba(249,115,22,0.4)",
+      }}>
+        ${pkg.price.toLocaleString()}
+      </div>
+
+      {/* Trip type */}
+      {pkg.tripType && (
+        <div style={{
+          position: "absolute", top: 14, left: 14,
+          background: "rgba(255,255,255,0.15)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.25)",
+          color: "#fff", padding: "4px 10px", borderRadius: 20,
+          fontSize: 10, fontWeight: 600,
+          textTransform: "uppercase", letterSpacing: 0.6,
+        }}>
+          {pkg.tripType}
+        </div>
+      )}
+
+      {/* Content */}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "22px 20px", color: "#fff" }}>
+        <div style={{ fontSize: 11, opacity: 0.75, marginBottom: 5 }}>📍 {pkg.destination}</div>
+        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.25, marginBottom: 6 }}>
+          {pkg.packageName}
+        </div>
+        <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 14 }}>
+          {pkg.startDate} → {pkg.endDate} · {pkg.availableSlots} cupos
+        </div>
+        <div style={{
+          display: "inline-flex", alignItems: "center",
+          background: "rgba(255,255,255,0.14)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.28)",
+          color: "#fff", padding: "7px 16px", borderRadius: 20,
+          fontSize: 12, fontWeight: 600,
+          opacity: hovered ? 1 : 0,
+          transform: hovered ? "translateY(0)" : "translateY(8px)",
+          transition: "opacity 0.25s ease, transform 0.25s ease",
+        }}>
+          Ver paquete →
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Home ─────────────────────────────────────────────────── */
 const Home = () => {
   const navigate = useNavigate()
   const [destination, setDestination] = useState("")
-  const [minPrice, setMinPrice] = useState("")
-  const [maxPrice, setMaxPrice] = useState("")
+  const [tripType, setTripType] = useState("")
+  const [featured, setFeatured] = useState([])
+
+  useEffect(() => {
+    packageService.getAvailable()
+      .then(res => setFeatured(res.data.slice(0, 3)))
+      .catch(err => console.error(err))
+  }, [])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
     if (destination) params.append("destination", destination)
-    if (minPrice) params.append("minPrice", minPrice)
-    if (maxPrice) params.append("maxPrice", maxPrice)
+    if (tripType) params.append("tripType", tripType)
     navigate(`/packages?${params.toString()}`)
   }
 
   return (
-    <div style={{ margin: "-24px 0" }}>
-      {/* Hero */}
-      <div style={{ background: "#006BB6", padding: "60px 24px", textAlign: "center", color: "#fff" }}>
-        <h1 style={{ fontSize: 32, fontWeight: 500, margin: "0 0 8px" }}>
-          Tu próximo viaje comienza aquí
+    <div style={{ margin: "-24px 0", background: "#F0F4F8" }}>
+
+      {/* ══ HERO BANNER ═══════════════════════════════════ */}
+      <div style={{
+        background: "linear-gradient(135deg, #0A2540 0%, #0d2d4f 60%, #0A2540 100%)",
+        padding: "64px 32px 72px",
+        textAlign: "center",
+      }}>
+        <h1 style={{
+          fontFamily: "'Poppins', sans-serif",
+          fontSize: 50, fontWeight: 800,
+          color: "#fff", margin: "0 0 14px",
+          letterSpacing: -1.5, lineHeight: 1.1,
+        }}>
+          El viaje que siempre
+          <span style={{ color: "#F97316" }}> imaginaste</span>
         </h1>
-        <p style={{ fontSize: 15, opacity: 0.85, margin: "0 0 32px" }}>
-          Encuentra el paquete perfecto para tu próxima aventura
+        <p style={{
+          fontSize: 16, color: "rgba(255,255,255,0.60)",
+          margin: "0 auto 40px", maxWidth: 460, lineHeight: 1.65,
+          fontFamily: "'Poppins', sans-serif",
+        }}>
+          Paquetes deportivos, festivales, naturaleza y escapadas exclusivas.
         </p>
 
         {/* Search bar */}
         <div style={{
-          background: "#fff", borderRadius: 50, padding: "6px 6px 6px 0",
-          display: "flex", alignItems: "center", maxWidth: 680,
-          margin: "0 auto", boxShadow: "0 4px 20px rgba(0,0,0,0.15)"
+          background: "#fff", borderRadius: 14, padding: "6px",
+          display: "flex", alignItems: "stretch",
+          maxWidth: 600, margin: "0 auto",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
         }}>
-          <div style={{ flex: 2, padding: "8px 20px", borderRight: "1px solid #eee", textAlign: "left" }}>
-            <div style={{ fontSize: 10, color: "#666", fontWeight: 500, marginBottom: 2 }}>DESTINO</div>
+          {/* Destination */}
+          <div style={{ flex: 1, padding: "10px 18px", borderRight: "1px solid #f0f0f0" }}>
+            <div style={{ fontSize: 9, color: "#bbb", fontWeight: 700, letterSpacing: 0.8, marginBottom: 3 }}>
+              DESTINO
+            </div>
             <input
               value={destination}
               onChange={e => setDestination(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="¿A dónde vas?"
-              style={{ border: "none", outline: "none", fontSize: 14, color: "#222", width: "100%", background: "transparent" }}
+              style={{
+                border: "none", outline: "none", fontSize: 14,
+                color: "#0A2540", width: "100%", background: "transparent",
+                fontFamily: "'Poppins', sans-serif",
+              }}
             />
           </div>
-          <div style={{ flex: 1, padding: "8px 20px", borderRight: "1px solid #eee", textAlign: "left" }}>
-            <div style={{ fontSize: 10, color: "#666", fontWeight: 500, marginBottom: 2 }}>PRECIO MÍN</div>
+
+          {/* Trip type */}
+          <div style={{ flex: 1, padding: "10px 18px" }}>
+            <div style={{ fontSize: 9, color: "#bbb", fontWeight: 700, letterSpacing: 0.8, marginBottom: 3 }}>
+              TIPO DE VIAJE
+            </div>
             <input
-              value={minPrice}
-              onChange={e => setMinPrice(e.target.value)}
-              placeholder="$ Mín"
-              type="number"
-              style={{ border: "none", outline: "none", fontSize: 14, color: "#222", width: "100%", background: "transparent" }}
+              value={tripType}
+              onChange={e => setTripType(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSearch()}
+              placeholder="Cultural, Deportivo..."
+              style={{
+                border: "none", outline: "none", fontSize: 14,
+                color: "#0A2540", width: "100%", background: "transparent",
+                fontFamily: "'Poppins', sans-serif",
+              }}
             />
           </div>
-          <div style={{ flex: 1, padding: "8px 20px", textAlign: "left" }}>
-            <div style={{ fontSize: 10, color: "#666", fontWeight: 500, marginBottom: 2 }}>PRECIO MÁX</div>
-            <input
-              value={maxPrice}
-              onChange={e => setMaxPrice(e.target.value)}
-              placeholder="$ Máx"
-              type="number"
-              style={{ border: "none", outline: "none", fontSize: 14, color: "#222", width: "100%", background: "transparent" }}
-            />
-          </div>
+
+          {/* Button */}
           <button
             onClick={handleSearch}
             style={{
-              background: "#F58426", color: "#fff", border: "none",
-              padding: "12px 28px", borderRadius: 50, fontSize: 14,
-              fontWeight: 500, cursor: "pointer", marginLeft: 8, whiteSpace: "nowrap"
+              background: "#F97316", color: "#fff", border: "none",
+              padding: "10px 26px", borderRadius: 10,
+              fontSize: 14, fontWeight: 700, cursor: "pointer",
+              fontFamily: "'Poppins', sans-serif", whiteSpace: "nowrap",
+              transition: "background 0.15s ease",
             }}
+            onMouseEnter={e => e.currentTarget.style.background = "#ea6500"}
+            onMouseLeave={e => e.currentTarget.style.background = "#F97316"}
           >
             Buscar
           </button>
         </div>
       </div>
 
-      {/* Featured packages */}
-      <div style={{ padding: "32px 24px" }}>
-        <h2 style={{ fontSize: 20, fontWeight: 500, marginBottom: 20 }}>Paquetes destacados</h2>
-        <FeaturedPackages navigate={navigate} />
+      {/* ══ FEATURED PACKAGES ═════════════════════════════ */}
+      <div style={{ padding: "48px 32px 72px" }}>
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          alignItems: "flex-end", marginBottom: 28,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 4, height: 24, background: "#F97316", borderRadius: 2 }} />
+            <div>
+              <h2 style={{
+                fontFamily: "'Poppins', sans-serif",
+                fontSize: 22, fontWeight: 700,
+                color: "#0A2540", margin: "0 0 4px", letterSpacing: -0.3,
+              }}>
+                Experiencias destacadas
+              </h2>
+              <p style={{ margin: 0, color: "#64748b", fontSize: 14, fontFamily: "'Poppins', sans-serif" }}>
+                Las aventuras más solicitadas de la temporada
+              </p>
+            </div>
+          </div>
+          <OutlineButton onClick={() => navigate("/packages")}>
+            Ver todos →
+          </OutlineButton>
+        </div>
+
+        {/* Grid */}
+        {featured.length === 0 ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22 }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{
+                height: 380, borderRadius: 16,
+                background: "linear-gradient(135deg, #e2e8f0, #cbd5e1)",
+              }} />
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 22 }}>
+            {featured.map(pkg => (
+              <FeaturedCard
+                key={pkg.id}
+                pkg={pkg}
+                onClick={() => navigate(`/packages/${pkg.id}`)}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
     </div>
   )
 }
 
-const FeaturedPackages = ({ navigate }) => {
-  const [packages, setPackages] = useState([])
-  const [hoveredId, setHoveredId] = useState(null)
-
-  useState(() => {
-    packageService.getAvailable()
-      .then(res => setPackages(res.data.slice(0, 6)))
-      .catch(err => console.error(err))
-  }, [])
-
+const OutlineButton = ({ onClick, children }) => {
+  const [hovered, setHovered] = useState(false)
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-      {packages.map(pkg => (
-        <div key={pkg.id}
-          onMouseEnter={() => setHoveredId(pkg.id)}
-          onMouseLeave={() => setHoveredId(null)}
-          onClick={() => navigate(`/packages/${pkg.id}`)}
-          style={{
-            background: "#fff", border: "1px solid #eee", borderRadius: 12,
-            overflow: "hidden", cursor: "pointer",
-            transition: "box-shadow 0.2s, transform 0.2s",
-            boxShadow: hoveredId === pkg.id ? "0 8px 24px rgba(0,0,0,0.12)" : "none",
-            transform: hoveredId === pkg.id ? "translateY(-4px)" : "translateY(0)"
-          }}>
-          <div style={{ height: 160, background: "#BEC0C2", display: "flex", alignItems: "center", justifyContent: "center", color: "#7a7c7e", fontSize: 13 }}>
-            {pkg.destination}
-          </div>
-          <div style={{ padding: 16 }}>
-            <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 4 }}>{pkg.packageName}</div>
-            <div style={{ fontSize: 12, color: "#888", marginBottom: 12 }}>{pkg.tripType} · {pkg.availableSlots} cupos</div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 16, fontWeight: 500, color: "#006BB6" }}>${pkg.price.toLocaleString()}</span>
-              <button
-                onClick={e => { e.stopPropagation(); navigate(`/packages/${pkg.id}`) }}
-                style={{ background: "#F58426", color: "#fff", border: "none", padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: "pointer" }}
-              >
-                Ver
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "#0A2540" : "transparent",
+        border: "1.5px solid #0A2540",
+        color: hovered ? "#fff" : "#0A2540",
+        padding: "8px 20px", borderRadius: 50,
+        fontSize: 13, fontWeight: 600, cursor: "pointer",
+        fontFamily: "'Poppins', sans-serif",
+        transition: "all 0.2s ease",
+      }}
+    >
+      {children}
+    </button>
   )
 }
 

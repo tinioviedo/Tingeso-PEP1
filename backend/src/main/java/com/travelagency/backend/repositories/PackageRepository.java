@@ -20,22 +20,8 @@ public interface PackageRepository extends JpaRepository<PackageEntity, Long> {
             @Param("status") PackageStatus status,
             @Param("today") LocalDate today);
 
-    //búsqueda con filtros opcionales combinados
-    //todos los parámetros son opcionales — si vienen null, no filtran
-    @Query("SELECT p FROM PackageEntity p WHERE p.packageStatus = :status " +
-            "AND p.availableSlots > 0 " +
-            "AND p.startDate >= :today " +
-            "AND (:destination IS NULL OR LOWER(p.destination) LIKE LOWER(CONCAT('%', :destination, '%'))) " +
-            "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
-            "AND (:maxPrice IS NULL OR p.price <= :maxPrice) " +
-            "AND (:tripType IS NULL OR p.tripType = :tripType)")
-    List<PackageEntity> searchPackages(
-            @Param("status") PackageStatus status,
-            @Param("destination") String destination,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            @Param("tripType") String tripType,
-            @Param("today") LocalDate today);
+    // searchPackages ya no se usa — el filtrado se hace en PackageService con streams
+    // para evitar el bug de JPQL con (:numericParam IS NULL OR ...) en PostgreSQL.
 }
 
 
