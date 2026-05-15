@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useKeycloak } from "@react-keycloak/web"
 import reservationService from "../services/reservation.service"
 import paymentService from "../services/payment.service"
+import clientService from "../services/client.service"
 
 const statusColors = {
     PENDING: { bg: "#FAEEDA", color: "#854F0B" },
@@ -19,10 +20,11 @@ const MyReservations = () => {
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
 
-    const clientId = keycloak.tokenParsed?.sub
+    const email = keycloak.tokenParsed?.email
 
     const load = () => {
-        reservationService.getMyReservations(clientId)
+        clientService.getByEmail(email)
+            .then(res => reservationService.getMyReservations(res.data.id))
             .then(res => setReservations(res.data))
             .catch(err => console.error(err))
             .finally(() => setLoading(false))

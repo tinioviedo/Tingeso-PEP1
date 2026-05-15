@@ -5,6 +5,98 @@ import packageService from "../services/package.service"
 import reservationService from "../services/reservation.service"
 import clientService from "../services/client.service"
 
+const SuccessOverlay = ({ data, onGo }) => {
+  const [count, setCount] = useState(5)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (count === 0) { onGo(); return }
+    const t = setTimeout(() => setCount(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [count])
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      background: "rgba(10,37,64,0.75)",
+      backdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 24,
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: 20, padding: "48px 40px",
+        maxWidth: 480, width: "100%", textAlign: "center",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.30)",
+        animation: "fadeUp 0.35s ease",
+      }}>
+        {/* Checkmark */}
+        <div style={{
+          width: 72, height: 72, borderRadius: "50%",
+          background: "linear-gradient(135deg, #3B6D11, #5a9e1a)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 20px",
+          boxShadow: "0 8px 24px rgba(59,109,17,0.35)",
+        }}>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+
+        <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, color: "#0A2540" }}>
+          ¡Reserva confirmada!
+        </h2>
+        <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: 14, lineHeight: 1.6 }}>
+          Tu reserva fue creada exitosamente.
+        </p>
+
+        {/* Totals */}
+        <div style={{
+          background: "#f8fafc", borderRadius: 12, padding: "20px 22px",
+          marginBottom: 20, textAlign: "left",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: data.discounts ? 14 : 0 }}>
+            <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>Total a pagar</span>
+            <span style={{ fontWeight: 700, color: "#006BB6", fontSize: 22, letterSpacing: -0.5 }}>
+              ${data.total?.toLocaleString()}
+            </span>
+          </div>
+          {data.discounts && (
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 6 }}>
+                Descuentos aplicados
+              </div>
+              <div style={{ fontSize: 13, color: "#3B6D11", lineHeight: 1.6 }}>
+                {data.discounts}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Countdown */}
+        <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 20 }}>
+          Redirigiendo a Mis reservas en{" "}
+          <span style={{ fontWeight: 700, color: "#F58426", fontSize: 16 }}>{count}s</span>
+        </p>
+
+        <button
+          onClick={onGo}
+          style={{
+            width: "100%", background: "#F58426", color: "#fff",
+            border: "none", padding: "14px 0", borderRadius: 10,
+            fontSize: 15, fontWeight: 600, cursor: "pointer",
+            transition: "background 0.15s",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "#ea6500"}
+          onMouseLeave={e => e.currentTarget.style.background = "#F58426"}
+        >
+          Ver mis reservas →
+        </button>
+      </div>
+      <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }`}</style>
+    </div>
+  )
+}
+
 const PackageDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -13,8 +105,8 @@ const PackageDetail = () => {
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
   const [reserving, setReserving] = useState(false)
+  const [reservationData, setReservationData] = useState(null)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
 
   useEffect(() => {
     packageService.getById(id)
@@ -25,7 +117,6 @@ const PackageDetail = () => {
 
   const handleReserve = () => {
     setError("")
-    setSuccess("")
     const email = keycloak.tokenParsed?.email
     if (!email) { setError("No se pudo identificar al usuario. Por favor inicia sesión nuevamente."); return }
     setReserving(true)
@@ -35,8 +126,10 @@ const PackageDetail = () => {
         return reservationService.create({ clientId, packageId: parseInt(id), quantity })
       })
       .then(res => {
-        setSuccess(`¡Reserva creada! Total: $${res.data.totalAmount.toLocaleString()}. ${res.data.appliedDiscounts ? "Descuentos: " + res.data.appliedDiscounts : ""}`)
-        setTimeout(() => navigate("/my-reservations"), 2500)
+        setReservationData({
+          total: res.data.totalAmount,
+          discounts: res.data.appliedDiscounts || null,
+        })
       })
       .catch(err => {
         if (err.response?.status === 404 || err.response?.status === 400) {
@@ -56,6 +149,14 @@ const PackageDetail = () => {
 
   return (
     <div style={{ margin: "-24px 0" }}>
+
+      {/* Overlay de éxito */}
+      {reservationData && (
+        <SuccessOverlay
+          data={reservationData}
+          onGo={() => navigate("/my-reservations")}
+        />
+      )}
 
       {/* Hero banner */}
       <div style={{
@@ -188,7 +289,6 @@ const PackageDetail = () => {
           </p>
 
           {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{error}</div>}
-          {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{success}</div>}
 
           <button onClick={handleReserve} disabled={reserving || pkg.packageStatus !== "AVAILABLE"} style={{
             width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",

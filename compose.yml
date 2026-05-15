@@ -36,7 +36,32 @@ services:
       - travelagency-net
 
   backend1:
-    build: ./backend
+    image: tinioviedo/travelagency-backend:latest
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: pescao
+      KEYCLOAK_HOST: keycloak
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - travelagency-net
+
+  backend2:
+    image: tinioviedo/travelagency-backend:latest
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: pescao
+      KEYCLOAK_HOST: keycloak
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - travelagency-net
+
+  backend3:
     image: tinioviedo/travelagency-backend:latest
     environment:
       DB_HOST: postgres
@@ -61,6 +86,16 @@ services:
       - travelagency-net
 
   frontend1:
+    image: tinioviedo/travelagency-frontend:latest
+    networks:
+      - travelagency-net
+
+  frontend2:
+    image: tinioviedo/travelagency-frontend:latest
+    networks:
+      - travelagency-net
+
+  frontend3:
     image: tinioviedo/travelagency-frontend:latest
     networks:
       - travelagency-net
