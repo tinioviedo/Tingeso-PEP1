@@ -36,11 +36,6 @@ function App() {
     return element
   }
 
-  if (!isLoggedIn) {
-    keycloak.login()
-    return null
-  }
-
   return (
     <Router>
       <div style={{ fontFamily: "'Poppins', sans-serif" }}>
@@ -49,8 +44,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/packages" element={<PrivateRoute element={<AvailablePackages />} rolesAllowed={["USER", "ADMIN"]} />} />
-            <Route path="/packages/:id" element={<PrivateRoute element={<PackageDetail />} rolesAllowed={["USER", "ADMIN"]} />} />
+            <Route path="/packages" element={<AvailablePackages />} />
+            <Route path="/packages/:id" element={<PackageDetail />} />
             <Route path="/my-reservations" element={<PrivateRoute element={<MyReservations />} rolesAllowed={["USER", "ADMIN"]} />} />
             <Route path="/profile" element={<PrivateRoute element={<Profile />} rolesAllowed={["USER", "ADMIN"]} />} />
             <Route path="/admin" element={<PrivateRoute element={<AdminLayout />} rolesAllowed={["ADMIN"]} />}>

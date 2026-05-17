@@ -29,7 +29,8 @@ services:
       KC_PROXY: edge
     command: start-dev --import-realm
     volumes:
-      - ./keycloak-realm.json:/opt/keycloak/data/import/keycloak-realm.json
+      - ./keycloak-realm.json:/opt/keycloak/data/import/travelagency-realm-realm.json
+      - keycloak_data:/opt/keycloak/data
     ports:
       - "9090:9090"
     networks:
@@ -113,6 +114,7 @@ services:
 
 volumes:
   postgres_data:
+  keycloak_data:
 
 networks:
   travelagency-net:

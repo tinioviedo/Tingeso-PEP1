@@ -11,6 +11,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const isLoggedIn = keycloak.authenticated
   const username = keycloak.tokenParsed?.preferred_username || ""
   const initial = username[0]?.toUpperCase() || "?"
   const roles = keycloak.tokenParsed?.realm_access?.roles || []
@@ -25,8 +26,8 @@ export default function Navbar() {
   const navLinks = [
     { label: "Inicio", path: "/home" },
     { label: "Paquetes", path: "/packages" },
-    { label: "Mis reservas", path: "/my-reservations" },
-    { label: "Mi perfil", path: "/profile" },
+    ...(isLoggedIn ? [{ label: "Mis reservas", path: "/my-reservations" }] : []),
+    ...(isLoggedIn ? [{ label: "Mi perfil", path: "/profile" }] : []),
     ...(isAdmin ? [{ label: "Admin", path: "/admin" }] : []),
   ]
 
@@ -97,34 +98,34 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Derecha: avatar + nombre + logout */}
+          {/* Derecha */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            {/* Divider */}
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", marginRight: 4 }} />
 
-            {/* Avatar */}
-            <div style={{
-              width: 30, height: 30, borderRadius: "50%",
-              background: "#F97316",
-              color: "#fff", fontSize: 12, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              {initial}
-            </div>
-
-            {/* Username */}
-            <span style={{
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 13, color: "rgba(255,255,255,0.75)",
-              maxWidth: 120, overflow: "hidden",
-              textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {username}
-            </span>
-
-            {/* Logout button */}
-            <LogoutButton onClick={() => keycloak.logout()} />
+            {isLoggedIn ? (
+              <>
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "#F97316",
+                  color: "#fff", fontSize: 12, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  {initial}
+                </div>
+                <span style={{
+                  fontFamily: "'Poppins', sans-serif",
+                  fontSize: 13, color: "rgba(255,255,255,0.75)",
+                  maxWidth: 120, overflow: "hidden",
+                  textOverflow: "ellipsis", whiteSpace: "nowrap",
+                }}>
+                  {username}
+                </span>
+                <LogoutButton onClick={() => keycloak.logout()} />
+              </>
+            ) : (
+              <LogoutButton label="Iniciar sesión" onClick={() => keycloak.login()} />
+            )}
           </div>
         </div>
       </div>
@@ -166,7 +167,7 @@ function NavLink({ label, active, onClick }) {
   )
 }
 
-function LogoutButton({ onClick }) {
+function LogoutButton({ onClick, label = "Salir" }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -184,7 +185,7 @@ function LogoutButton({ onClick }) {
         transition: "all 0.2s ease",
       }}
     >
-      Salir
+      {label}
     </button>
   )
 }
