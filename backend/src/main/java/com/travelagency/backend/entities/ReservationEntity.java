@@ -46,6 +46,9 @@ public class ReservationEntity {
     @Column(length = 500)
     private String appliedDiscounts; //String que documenta el descuento
 
+    @Column(length = 1000)
+    private String companions; // Datos de acompañantes: "Nombre (RUT); Nombre (RUT)"
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReservationStatus reservationStatus;

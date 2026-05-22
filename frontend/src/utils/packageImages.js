@@ -20,13 +20,40 @@ const DESTINATION_IMAGES = {
   "Tokio, Japón":
     "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80&fit=crop",
   "Cusco, Perú":
-    "https://images.unsplash.com/photo-1587595431973-160543fc6d60?w=800&q=80&fit=crop",
+    "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800&q=80&fit=crop",
   "Cancún, México":
     "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80&fit=crop",
   "Punta Arenas, Chile":
     "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80&fit=crop",
   "Santorini, Grecia":
     "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80&fit=crop",
+  // Chile
+  "La Serena, Chile":
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80&fit=crop",
+  "Isla de Pascua, Chile":
+    "https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=800&q=80&fit=crop",
+  "Iquique, Chile":
+    "https://images.unsplash.com/photo-1531761535209-180857e963b9?w=800&q=80&fit=crop",
+  "Puerto Montt, Chile":
+    "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=800&q=80&fit=crop",
+  // Argentina
+  "Buenos Aires, Argentina":
+    "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800&q=80&fit=crop",
+  "San Carlos de Bariloche, Argentina":
+    "https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=800&q=80&fit=crop",
+  // Italia
+  "Milán, Italia":
+    "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=800&q=80&fit=crop",
+}
+
+// Imágenes por nombre de paquete — para cuando dos paquetes comparten destino
+const PACKAGE_NAME_IMAGES = {
+  "Estadio Tierra de Campeones - Iquique":
+    "https://estadiosdb.com/pictures/stadiums/chi/estadio_tierra_de_campeones/estadio_tierra_de_campeones05.jpg",
+  "La Bombonera - Boca Juniors en Buenos Aires":
+    "https://images.unsplash.com/photo-1577223625816-7546f13df25d?w=800&q=80&fit=crop",
+  "San Siro - AC Milan e Inter en Milán":
+    "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80&fit=crop",
 }
 
 const FALLBACK_GRADIENTS = [
@@ -38,7 +65,10 @@ const FALLBACK_GRADIENTS = [
   "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
 ]
 
-export const getPackageImage = (destination) => {
+export const getPackageImage = (destination, packageName = "") => {
+  if (packageName && PACKAGE_NAME_IMAGES[packageName]) {
+    return PACKAGE_NAME_IMAGES[packageName]
+  }
   return DESTINATION_IMAGES[destination] || null
 }
 

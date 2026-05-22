@@ -103,7 +103,7 @@ const AdminDiscounts = () => {
                 </div>
                 {discounts.map(d => (
                     <div key={d.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 120px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
-                        <span style={{ fontWeight: 500 }}>{d.discountType}</span>
+                        <span style={{ fontWeight: 500 }}>{{ GROUP: "Grupal", FREQUENT_CLIENT: "Cliente frecuente", MULTIPLE_PACKAGES: "Múltiples paquetes" }[d.discountType] || d.discountType}</span>
                         <span>{d.minThreshold}</span>
                         <span>{(d.discountRate * 100).toFixed(0)}%</span>
                         <span style={{ fontSize: 11, fontWeight: 500, color: d.active ? "#3B6D11" : "#A32D2D" }}>

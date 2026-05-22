@@ -2,6 +2,9 @@
 -- TravelAgency - Initial Data Script
 -- ============================================================
 
+-- Base de datos para Keycloak (persistencia de usuarios)
+SELECT 'CREATE DATABASE keycloak' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'keycloak')\gexec
+
 -- Packages
 CREATE TABLE IF NOT EXISTS packages (
     id BIGSERIAL PRIMARY KEY,
@@ -288,6 +291,73 @@ SELECT * FROM (VALUES
 )
 ) AS v(package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
 WHERE NOT EXISTS (SELECT 1 FROM packages LIMIT 1);
+
+-- ============================================================
+-- Paquetes adicionales (Chile, Argentina, Italia)
+-- Se insertan individualmente solo si no existen
+-- ============================================================
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'La Serena - Playas y Valle del Elqui', 'La Serena, Chile', 850.0, 20, 20, 'AVAILABLE', DATE '2026-09-01', DATE '2026-09-07', 'Playa',
+  'Descubre la ciudad de las torres y campanarios. Relájate en las hermosas playas del norte chico y explora el místico Valle del Elqui, cuna del pisco y hogar de uno de los cielos estrellados más puros del mundo.',
+  'Vuelo ida y vuelta, hotel 4 estrellas 6 noches, tour Valle del Elqui, observatorio astronómico nocturno, traslados',
+  'No incluye comidas. Clima variable en temporada. Se recomienda bloqueador solar.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'La Serena - Playas y Valle del Elqui');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Isla de Pascua - El Misterio de los Moai', 'Isla de Pascua, Chile', 2600.0, 12, 12, 'AVAILABLE', DATE '2026-10-10', DATE '2026-10-18', 'Cultural',
+  'Viaja al lugar más remoto del planeta y descubre los enigmáticos moai del pueblo Rapa Nui. Una experiencia arqueológica y cultural única declarada Patrimonio de la Humanidad por la UNESCO.',
+  'Vuelo ida y vuelta, hotel 4 estrellas 8 noches, tour completo a los principales sitios arqueológicos, visita a Rano Raraku y Ahu Tongariki, traslados',
+  'Pasaporte o cédula vigente. Temporada alta, reserva con anticipación. No incluye comidas.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Isla de Pascua - El Misterio de los Moai');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Iquique - Humberstone y Patrimonio UNESCO', 'Iquique, Chile', 950.0, 18, 18, 'AVAILABLE', DATE '2026-08-05', DATE '2026-08-10', 'Cultural',
+  'Explora las míticas oficinas salitreras de Humberstone y Santa Laura, Patrimonio de la Humanidad de la UNESCO. Un viaje en el tiempo al Chile del siglo XIX, combinado con las playas y el desierto del norte.',
+  'Vuelo ida y vuelta, hotel 4 estrellas 5 noches, tour a Humberstone y Santa Laura, visita al mercado Centenario, acceso a playas, traslados',
+  'No incluye comidas. Clima desértico con alta radiación UV. Se recomienda protector solar y agua.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Iquique - Humberstone y Patrimonio UNESCO');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Estadio Tierra de Campeones - Iquique', 'Iquique, Chile', 780.0, 20, 20, 'AVAILABLE', DATE '2026-09-15', DATE '2026-09-19', 'Deportivo',
+  'Vive el fútbol chileno en el norte del país. Disfruta un partido de Deportes Iquique en el Estadio Tierra de Campeones y combina tu visita con las playas y el clima privilegiado de la ciudad.',
+  'Vuelo ida y vuelta, hotel 3 estrellas 4 noches, entrada al partido en el Estadio Tierra de Campeones, tour por la ciudad, acceso a playas, traslados',
+  'Partido sujeto a fixture oficial. No incluye comidas. Se recomienda llevar cédula de identidad.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Estadio Tierra de Campeones - Iquique');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Puerto Montt - Patagonia Verde y Lagos', 'Puerto Montt, Chile', 1100.0, 16, 16, 'AVAILABLE', DATE '2026-11-01', DATE '2026-11-08', 'Naturaleza',
+  'Descubre la puerta de entrada a la Patagonia chilena. Puerto Montt te ofrece volcanes nevados, lagos cristalinos, deliciosa gastronomía de mariscos y la famosa Feria Artesanal de Angelmó.',
+  'Vuelo ida y vuelta, hotel 4 estrellas 7 noches, tour Angelmó y gastronomía local, navegación por los canales, visita a Frutillar, traslados',
+  'Clima variable y lluvioso. Se recomienda ropa impermeable. No incluye comidas.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Puerto Montt - Patagonia Verde y Lagos');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Buenos Aires - Tango, Arte y Cultura', 'Buenos Aires, Argentina', 1200.0, 20, 20, 'AVAILABLE', DATE '2026-08-10', DATE '2026-08-17', 'Cultural',
+  'La ciudad más europea de América Latina te espera con su vibrante vida cultural. Descubre La Boca, San Telmo, Palermo, los mejores espectáculos de tango y la gastronomía porteña.',
+  'Vuelo ida y vuelta, hotel boutique 4 estrellas 7 noches, show de tango con cena, tour Buenos Aires, visita al MALBA, traslados',
+  'Pasaporte vigente obligatorio. No incluye comidas diarias. Se recomienda efectivo en pesos argentinos.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Buenos Aires - Tango, Arte y Cultura');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'Bariloche - Lagos y Montañas de la Patagonia', 'San Carlos de Bariloche, Argentina', 1500.0, 15, 15, 'AVAILABLE', DATE '2026-07-20', DATE '2026-07-28', 'Naturaleza',
+  'El destino más romántico de Argentina. Rodeado de montañas nevadas, lagos azules y bosques de lengas, Bariloche combina aventura, gastronomía y paisajes de ensueño patagónicos.',
+  'Vuelo ida y vuelta, hotel de montaña 4 estrellas 8 noches, circuito chico panorámico, excursión al Cerro Catedral, degustación de chocolates artesanales, traslados',
+  'Pasaporte vigente obligatorio. Temporada alta junio-agosto (ski). No incluye comidas.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'Bariloche - Lagos y Montañas de la Patagonia');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'La Bombonera - Boca Juniors en Buenos Aires', 'Buenos Aires, Argentina', 1800.0, 15, 15, 'AVAILABLE', DATE '2026-09-20', DATE '2026-09-27', 'Deportivo',
+  'Vive el fútbol más pasional del mundo en el estadio más famoso de Argentina. Presencia un partido de Boca Juniors en La Bombonera y recorre el colorido barrio de La Boca y Caminito.',
+  'Vuelo ida y vuelta, hotel 4 estrellas Buenos Aires 7 noches, entrada al partido de Boca Juniors en La Bombonera, tour barrio La Boca y Caminito, traslados',
+  'Pasaporte vigente obligatorio. Partido sujeto a fixture oficial AFA. No reembolsable. Documento de identidad obligatorio en el estadio.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'La Bombonera - Boca Juniors en Buenos Aires');
+
+INSERT INTO packages (package_name, destination, price, slots, available_slots, package_status, start_date, end_date, trip_type, description, included_services, conditions)
+SELECT 'San Siro - AC Milan e Inter en Milán', 'Milán, Italia', 2300.0, 14, 14, 'AVAILABLE', DATE '2026-10-15', DATE '2026-10-22', 'Deportivo',
+  'Visita el mítico Estadio Giuseppe Meazza, hogar de AC Milan e Inter de Milán. El tour incluye el campo de juego, vestuarios y museo oficial. Vive el fútbol italiano y la elegante ciudad de Milán.',
+  'Vuelo ida y vuelta, hotel 4 estrellas Milán 7 noches, tour oficial Estadio San Siro (campo y vestuarios), visita al Duomo de Milán, Galería Vittorio Emanuele II, traslados',
+  'Pasaporte vigente obligatorio. Tour del estadio sujeto a disponibilidad. No incluye comidas.'
+WHERE NOT EXISTS (SELECT 1 FROM packages WHERE package_name = 'San Siro - AC Milan e Inter en Milán');
 
 -- Insert discounts only if table is empty
 INSERT INTO discounts (discount_type, min_threshold, discount_rate, active)

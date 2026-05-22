@@ -27,8 +27,10 @@ public class ReservationController {
         Long clientId = Long.valueOf(body.get("clientId").toString());
         Long packageId = Long.valueOf(body.get("packageId").toString());
         Integer quantity = Integer.valueOf(body.get("quantity").toString());
+        Object companionsRaw = body.get("companions");
+        String companions = companionsRaw != null ? companionsRaw.toString() : null;
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reservationService.createReservation(clientId, packageId, quantity));
+                .body(reservationService.createReservation(clientId, packageId, quantity, companions));
     }
 
     // PATCH /api/v1/reservations/{id}/cancel

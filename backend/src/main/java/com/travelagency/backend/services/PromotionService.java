@@ -46,7 +46,10 @@ public class PromotionService {
         if (updates.getName() != null && !updates.getName().isBlank()) {
             existing.setName(updates.getName());
         }
-        if (updates.getDiscountRate() != null && updates.getDiscountRate() > 0 && updates.getDiscountRate() < 1) {
+        if (updates.getDiscountRate() != null) {
+            if (updates.getDiscountRate() <= 0 || updates.getDiscountRate() >= 1) {
+                throw new IllegalArgumentException("Discount rate must be between 0 and 1.");
+            }
             existing.setDiscountRate(updates.getDiscountRate());
         }
         if (updates.getStartDate() != null) {

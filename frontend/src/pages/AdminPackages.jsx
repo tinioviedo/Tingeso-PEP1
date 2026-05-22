@@ -84,6 +84,7 @@ const AdminPackages = () => {
     }
 
     const statusColor = { AVAILABLE: "#3B6D11", SOLD_OUT: "#854F0B", NOT_VALID: "#5F5E5A", CANCELLED: "#A32D2D" }
+    const statusLabel = { AVAILABLE: "Disponible", SOLD_OUT: "Agotado", NOT_VALID: "No válido", CANCELLED: "Cancelado" }
 
     if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
@@ -185,9 +186,9 @@ const AdminPackages = () => {
                     <div key={pkg.id} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 160px", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
                         <span style={{ fontWeight: 500 }}>{pkg.packageName}</span>
                         <span style={{ color: "#666" }}>{pkg.destination}</span>
-                        <span>${pkg.price?.toLocaleString()}</span>
+                        <span>US$ {pkg.price?.toLocaleString()}</span>
                         <span>{pkg.availableSlots}/{pkg.slots}</span>
-                        <span style={{ color: statusColor[pkg.packageStatus], fontWeight: 500, fontSize: 12 }}>{pkg.packageStatus}</span>
+                        <span style={{ color: statusColor[pkg.packageStatus], fontWeight: 500, fontSize: 12 }}>{statusLabel[pkg.packageStatus] || pkg.packageStatus}</span>
                         <div style={{ display: "flex", gap: 6 }}>
                             <button onClick={() => handleEdit(pkg)}
                                 style={{ background: "#006BB6", color: "#fff", border: "none", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>

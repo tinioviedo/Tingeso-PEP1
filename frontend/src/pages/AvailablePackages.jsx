@@ -147,7 +147,7 @@ const PriceRangeSlider = ({ allPrices, minVal, maxVal, onMinChange, onMaxChange 
         }}>
           <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, marginBottom: 1 }}>Mínimo</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2540" }}>
-            ${currentMin.toLocaleString()}
+            US$ {currentMin.toLocaleString()}
           </div>
         </div>
         <div style={{
@@ -156,7 +156,7 @@ const PriceRangeSlider = ({ allPrices, minVal, maxVal, onMinChange, onMaxChange 
         }}>
           <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, marginBottom: 1 }}>Máximo</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2540" }}>
-            ${currentMax.toLocaleString()}
+            US$ {currentMax.toLocaleString()}
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ const PriceRangeSlider = ({ allPrices, minVal, maxVal, onMinChange, onMaxChange 
 const PackageCard = ({ pkg, onClick }) => {
   const [imgError, setImgError] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const imageUrl = getPackageImage(pkg.destination)
+  const imageUrl = getPackageImage(pkg.destination, pkg.packageName)
 
   return (
     <div
@@ -208,12 +208,12 @@ const PackageCard = ({ pkg, onClick }) => {
       }} />
       <div style={{
         position: "absolute", top: 12, right: 12,
-        background: "#F97316", color: "#fff",
-        padding: "4px 11px", borderRadius: 20,
+        background: "#fff", color: "#0A2540",
+        padding: "5px 12px", borderRadius: 20,
         fontSize: 13, fontWeight: 700,
-        boxShadow: "0 3px 10px rgba(249,115,22,0.4)",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
       }}>
-        ${pkg.price.toLocaleString()}
+        US$ {pkg.price.toLocaleString()}
       </div>
       {pkg.tripType && (
         <div style={{
@@ -526,10 +526,10 @@ const AvailablePackages = () => {
             <Chip label={`Tipo: ${filters.tripType}`} onRemove={() => { const f = { ...filters, tripType: "" }; setFilters(f); load(f) }} />
           )}
           {filters.minPrice && (
-            <Chip label={`Desde $${Number(filters.minPrice).toLocaleString()}`} onRemove={() => { const f = { ...filters, minPrice: "" }; setFilters(f); load(f) }} />
+            <Chip label={`Desde US$ ${Number(filters.minPrice).toLocaleString()}`} onRemove={() => { const f = { ...filters, minPrice: "" }; setFilters(f); load(f) }} />
           )}
           {filters.maxPrice && (
-            <Chip label={`Hasta $${Number(filters.maxPrice).toLocaleString()}`} onRemove={() => { const f = { ...filters, maxPrice: "" }; setFilters(f); load(f) }} />
+            <Chip label={`Hasta US$ ${Number(filters.maxPrice).toLocaleString()}`} onRemove={() => { const f = { ...filters, maxPrice: "" }; setFilters(f); load(f) }} />
           )}
           <button onClick={handleClear} style={{
             background: "none", border: "none", color: "#F97316",

@@ -79,7 +79,8 @@ public class PackageService {
         return packageRepository.findAvailablePackages(PackageStatus.AVAILABLE, LocalDate.now())
                 .stream()
                 .filter(p -> destination == null || destination.isBlank() ||
-                        p.getDestination().toLowerCase().contains(destination.toLowerCase()))
+                        p.getDestination().toLowerCase().contains(destination.toLowerCase()) ||
+                        p.getPackageName().toLowerCase().contains(destination.toLowerCase()))
                 .filter(p -> minPrice == null || p.getPrice() >= minPrice)
                 .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
                 .filter(p -> tripType == null || tripType.isBlank() ||
@@ -207,7 +208,8 @@ public class PackageService {
     // Libera cupos si una reserva se cancela o expira
     public PackageEntity releaseSlots(Long packageId, int quantity) {
         PackageEntity pkg = getPackageById(packageId);
-        pkg.setAvailableSlots(pkg.getAvailableSlots() + quantity);
+        int released = Math.min(pkg.getAvailableSlots() + quantity, pkg.getSlots());
+        pkg.setAvailableSlots(released);
 
         // Si estaba agotado y volvieron cupos, regresa a AVAILABLE
         if (pkg.getPackageStatus() == PackageStatus.SOLD_OUT && pkg.getAvailableSlots() > 0) {

@@ -54,7 +54,7 @@ const AdminReservations = () => {
                             <div style={{ fontSize: 11, color: "#888" }}>{res.travelPackage?.destination}</div>
                         </div>
                         <span>{res.quantity}</span>
-                        <span style={{ fontWeight: 500, color: "#006BB6" }}>${res.totalAmount?.toLocaleString()}</span>
+                        <span style={{ fontWeight: 500, color: "#006BB6" }}>US$ {res.totalAmount?.toLocaleString()}</span>
                         <span style={{
                             fontSize: 11, padding: "3px 8px", borderRadius: 10, fontWeight: 500,
                             background: statusColors[res.reservationStatus]?.bg,

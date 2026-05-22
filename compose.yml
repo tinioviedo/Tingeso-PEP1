@@ -27,12 +27,18 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_PROXY: edge
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: pescao
     command: start-dev --import-realm
     volumes:
       - ./keycloak-realm.json:/opt/keycloak/data/import/travelagency-realm-realm.json
-      - keycloak_data:/opt/keycloak/data
     ports:
       - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - travelagency-net
 

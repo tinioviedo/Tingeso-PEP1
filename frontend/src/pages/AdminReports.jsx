@@ -84,8 +84,8 @@ const AdminReports = () => {
                                     <div style={{ fontSize: 11, color: "#888" }}>{res.travelPackage?.destination}</div>
                                 </div>
                                 <span>{res.quantity}</span>
-                                <span style={{ color: "#999", textDecoration: "line-through" }}>${res.baseAmount?.toLocaleString()}</span>
-                                <span style={{ fontWeight: 500, color: "#006BB6" }}>${res.totalAmount?.toLocaleString()}</span>
+                                <span style={{ color: "#999", textDecoration: "line-through" }}>US$ {res.baseAmount?.toLocaleString()}</span>
+                                <span style={{ fontWeight: 500, color: "#006BB6" }}>US$ {res.totalAmount?.toLocaleString()}</span>
                                 <span style={{
                                     fontSize: 11, padding: "3px 8px", borderRadius: 10, fontWeight: 500,
                                     background: statusColors[res.reservationStatus]?.bg,
@@ -98,7 +98,7 @@ const AdminReports = () => {
                         {sales.length > 0 && (
                             <div style={{ padding: "12px 16px", background: "#fafafa", display: "flex", justifyContent: "flex-end", gap: 24, fontSize: 13 }}>
                                 <span style={{ color: "#666" }}>Total reservas: <strong>{sales.length}</strong></span>
-                                <span style={{ color: "#666" }}>Ingresos totales: <strong style={{ color: "#006BB6" }}>${sales.reduce((s, r) => s + (r.totalAmount || 0), 0).toLocaleString()}</strong></span>
+                                <span style={{ color: "#666" }}>Ingresos totales: <strong style={{ color: "#006BB6" }}>US$ {sales.reduce((s, r) => s + (r.totalAmount || 0), 0).toLocaleString()}</strong></span>
                             </div>
                         )}
                     </div>
@@ -124,7 +124,7 @@ const AdminReports = () => {
                                 <span style={{ fontWeight: 500 }}>{item.packageName}</span>
                                 <span style={{ fontWeight: 500, color: "#006BB6" }}>{item.totalReservations}</span>
                                 <span>{item.totalPassengers}</span>
-                                <span style={{ fontWeight: 500 }}>${Number(item.totalAmount).toLocaleString()}</span>
+                                <span style={{ fontWeight: 500 }}>US$ {Number(item.totalAmount).toLocaleString()}</span>
                             </div>
                         ))}
                     </div>

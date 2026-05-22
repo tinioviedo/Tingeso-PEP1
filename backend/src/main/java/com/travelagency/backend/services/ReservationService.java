@@ -27,7 +27,7 @@ public class ReservationService {
     @Autowired
     private DiscountService discountService;
 
-    public ReservationEntity createReservation(Long clientId, Long packageId, Integer quantity) {
+    public ReservationEntity createReservation(Long clientId, Long packageId, Integer quantity, String companions) {
         ClientEntity client = clientService.getActiveClientById(clientId);
         PackageEntity pkg = packageService.getPackageById(packageId);
 
@@ -52,6 +52,7 @@ public class ReservationService {
         reservation.setDiscountAmount(discount.discountAmount());
         reservation.setTotalAmount(discount.totalAmount());
         reservation.setAppliedDiscounts(discount.appliedDiscounts());
+        reservation.setCompanions(companions);
 
         return reservationRepository.save(reservation);
     }

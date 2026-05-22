@@ -215,7 +215,7 @@ class DiscountServiceTest {
         // Then
         assertThat(result.discountAmount()).isEqualTo(100.0);
         assertThat(result.totalAmount()).isEqualTo(900.0);
-        assertThat(result.appliedDiscounts()).contains("Group discount");
+        assertThat(result.appliedDiscounts()).contains("Descuento grupal");
     }
 
     @Test

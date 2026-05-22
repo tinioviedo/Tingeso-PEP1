@@ -4,6 +4,7 @@ import { useKeycloak } from "@react-keycloak/web"
 import packageService from "../services/package.service"
 import reservationService from "../services/reservation.service"
 import clientService from "../services/client.service"
+import { getPackageImage } from "../utils/packageImages"
 
 const SuccessOverlay = ({ data, onGo }) => {
   const [count, setCount] = useState(5)
@@ -57,7 +58,7 @@ const SuccessOverlay = ({ data, onGo }) => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: data.discounts ? 14 : 0 }}>
             <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>Total a pagar</span>
             <span style={{ fontWeight: 700, color: "#006BB6", fontSize: 22, letterSpacing: -0.5 }}>
-              ${data.total?.toLocaleString()}
+              US$ {data.total?.toLocaleString()}
             </span>
           </div>
           {data.discounts && (
@@ -103,6 +104,7 @@ const PackageDetail = () => {
   const { keycloak } = useKeycloak()
   const [pkg, setPkg] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [companions, setCompanions] = useState([])
   const [loading, setLoading] = useState(true)
   const [reserving, setReserving] = useState(false)
   const [reservationData, setReservationData] = useState(null)
@@ -115,15 +117,32 @@ const PackageDetail = () => {
       .finally(() => setLoading(false))
   }, [id])
 
+  const rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/
   const handleReserve = () => {
     setError("")
     const email = keycloak.tokenParsed?.email
     if (!email) { setError("No se pudo identificar al usuario. Por favor inicia sesión nuevamente."); return }
+
+    // Validate companions
+    if (quantity > 1) {
+      for (let i = 0; i < companions.length; i++) {
+        const c = companions[i]
+        if (!c.name.trim()) { setError(`Ingresa el nombre del acompañante ${i + 1}.`); return }
+        if (!c.rut.trim()) { setError(`Ingresa el RUT del acompañante ${i + 1}.`); return }
+        if (!rutRegex.test(c.rut.trim())) { setError(`RUT del acompañante ${i + 1} no es válido. Usa el formato 12.345.678-9`); return }
+      }
+    }
+
     setReserving(true)
+    const companionsStr = companions
+      .filter(c => c.name.trim() || c.rut.trim())
+      .map(c => `${c.name.trim()} (${c.rut.trim()})`)
+      .join("; ") || null
+
     clientService.getByEmail(email)
       .then(res => {
         const clientId = res.data.id
-        return reservationService.create({ clientId, packageId: parseInt(id), quantity })
+        return reservationService.create({ clientId, packageId: parseInt(id), quantity, companions: companionsStr })
       })
       .then(res => {
         setReservationData({
@@ -146,6 +165,7 @@ const PackageDetail = () => {
 
   const baseAmount = pkg.price * quantity
   const estimatedTotal = quantity >= 6 ? baseAmount * 0.90 : baseAmount
+  const heroImage = getPackageImage(pkg.destination, pkg.packageName)
 
   return (
     <div style={{ margin: "-24px 0" }}>
@@ -184,7 +204,7 @@ const PackageDetail = () => {
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>desde</div>
-            <div style={{ color: "#fff", fontSize: 36, fontWeight: 500 }}>${pkg.price.toLocaleString()}</div>
+            <div style={{ color: "#fff", fontSize: 36, fontWeight: 500 }}>US$ {pkg.price.toLocaleString()}</div>
             <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>por persona</div>
           </div>
         </div>
@@ -208,7 +228,7 @@ const PackageDetail = () => {
           <div>
             <div style={{ fontSize: 10, color: "#888", textTransform: "uppercase" }}>Estado</div>
             <div style={{ fontSize: 13, fontWeight: 500, color: pkg.packageStatus === "AVAILABLE" ? "#3B6D11" : "#A32D2D" }}>
-              {pkg.packageStatus}
+              {{ AVAILABLE: "Disponible", SOLD_OUT: "Agotado", NOT_VALID: "No vigente", CANCELLED: "Cancelado" }[pkg.packageStatus] || pkg.packageStatus}
             </div>
           </div>
         </div>
@@ -250,12 +270,24 @@ const PackageDetail = () => {
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 12, color: "#666", marginBottom: 10, fontWeight: 500 }}>PASAJEROS</div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, background: "#f5f5f5", borderRadius: 10, padding: "10px 16px", width: "fit-content" }}>
-              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} style={{
+              <button onClick={() => {
+                const next = Math.max(1, quantity - 1)
+                setQuantity(next)
+                setCompanions(c => c.slice(0, next - 1))
+              }} style={{
                 width: 32, height: 32, borderRadius: "50%", border: "1px solid #ddd",
                 background: "#fff", cursor: "pointer", fontSize: 18, fontWeight: 300
               }}>−</button>
               <span style={{ fontSize: 18, fontWeight: 500, minWidth: 28, textAlign: "center" }}>{quantity}</span>
-              <button onClick={() => setQuantity(q => Math.min(pkg.availableSlots, q + 1))} style={{
+              <button onClick={() => {
+                const next = Math.min(pkg.availableSlots, quantity + 1)
+                setQuantity(next)
+                setCompanions(c => {
+                  const arr = [...c]
+                  while (arr.length < next - 1) arr.push({ name: "", rut: "" })
+                  return arr
+                })
+              }} style={{
                 width: 32, height: 32, borderRadius: "50%", border: "none",
                 background: "#006BB6", color: "#fff", cursor: "pointer", fontSize: 18, fontWeight: 300
               }}>+</button>
@@ -267,20 +299,47 @@ const PackageDetail = () => {
             )}
           </div>
 
+          {/* Acompañantes — solo si hay más de 1 pasajero */}
+          {quantity > 1 && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 10, fontWeight: 500 }}>DATOS DE ACOMPAÑANTES</div>
+              {companions.map((c, i) => (
+                <div key={i} style={{ marginBottom: 10, background: "#f5f5f5", borderRadius: 10, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>Acompañante {i + 1}</div>
+                  <input
+                    value={c.name}
+                    onChange={e => {
+                      const letters = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
+                      setCompanions(arr => arr.map((x, j) => j === i ? { ...x, name: letters } : x))
+                    }}
+                    placeholder="Nombre completo"
+                    style={{ width: "100%", padding: "7px 10px", borderRadius: 6, border: "1px solid #ddd", fontSize: 13, marginBottom: 6, boxSizing: "border-box" }}
+                  />
+                  <input
+                    value={c.rut}
+                    onChange={e => setCompanions(arr => arr.map((x, j) => j === i ? { ...x, rut: e.target.value } : x))}
+                    placeholder="RUT (ej: 12.345.678-9)"
+                    style={{ width: "100%", padding: "7px 10px", borderRadius: 6, border: `1px solid ${c.rut && !/^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/.test(c.rut.trim()) ? "#e53e3e" : "#ddd"}`, fontSize: 13, boxSizing: "border-box" }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
           <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 16, marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", color: "#666" }}>
-              <span>${pkg.price.toLocaleString()} × {quantity}</span>
-              <span>${baseAmount.toLocaleString()}</span>
+              <span>US$ {pkg.price.toLocaleString()} × {quantity}</span>
+              <span>US$ {baseAmount.toLocaleString()}</span>
             </div>
             {quantity >= 6 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", color: "#3B6D11" }}>
                 <span>Descuento grupal (10%)</span>
-                <span>−${(baseAmount * 0.10).toLocaleString()}</span>
+                <span>−US$ {(baseAmount * 0.10).toLocaleString()}</span>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 500, padding: "12px 0", borderTop: "1px solid #eee", marginTop: 8 }}>
               <span>Total estimado</span>
-              <span style={{ color: "#006BB6" }}>${estimatedTotal.toLocaleString()}</span>
+              <span style={{ color: "#006BB6" }}>US$ {estimatedTotal.toLocaleString()}</span>
             </div>
           </div>
 

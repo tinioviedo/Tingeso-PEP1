@@ -76,7 +76,7 @@ public class DiscountService {
                 .findByDiscountTypeAndActiveTrue(DiscountType.GROUP);
         if (groupDiscount.isPresent() && quantity >= groupDiscount.get().getMinThreshold()) {
             totalDiscountRate += groupDiscount.get().getDiscountRate();
-            applied.add("Group discount: " + (int)(groupDiscount.get().getDiscountRate() * 100) + "%");
+            applied.add("Descuento grupal: " + (int)(groupDiscount.get().getDiscountRate() * 100) + "%");
         }
 
         // descuento de FREQUENT_CLIENT
@@ -87,7 +87,7 @@ public class DiscountService {
                     .countByClient_IdAndReservationStatus(clientId, ReservationStatus.CONFIRMED);
             if (paidReservations >= frequentDiscount.get().getMinThreshold()) {
                 totalDiscountRate += frequentDiscount.get().getDiscountRate();
-                applied.add("Frequent client discount: " + (int)(frequentDiscount.get().getDiscountRate() * 100) + "%");
+                applied.add("Descuento cliente frecuente: " + (int)(frequentDiscount.get().getDiscountRate() * 100) + "%");
             }
         }
         // descuento por compra de MULTIPLE_PACKAGE
@@ -111,14 +111,14 @@ public class DiscountService {
 
             if (applies) {
                 totalDiscountRate += multipleDiscount.get().getDiscountRate();
-                applied.add("Multiple packages discount: " + (int)(multipleDiscount.get().getDiscountRate() * 100) + "%");
+                applied.add("Descuento múltiples paquetes: " + (int)(multipleDiscount.get().getDiscountRate() * 100) + "%");
             }
         }
         // PROMOTIONS — active in current date range
         List<PromotionEntity> activePromotions = promotionRepository.findActivePromotions(LocalDate.now());
         for (PromotionEntity promo : activePromotions) {
             totalDiscountRate += promo.getDiscountRate();
-            applied.add("Promotion '" + promo.getName() + "': " + (int)(promo.getDiscountRate() * 100) + "%");
+            applied.add("Promoción '" + promo.getName() + "': " + (int)(promo.getDiscountRate() * 100) + "%");
         }
         // Limite maximo 20%
         if (totalDiscountRate > MAX_TOTAL_DISCOUNT_RATE) {

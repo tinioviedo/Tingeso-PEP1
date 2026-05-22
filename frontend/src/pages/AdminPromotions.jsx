@@ -21,6 +21,11 @@ const AdminPromotions = () => {
 
     const handleSubmit = () => {
         setError("")
+        const rate = parseFloat(form.discountRate)
+        if (isNaN(rate) || rate <= 0 || rate >= 1) {
+            setError("La tasa debe ser un valor entre 0 y 1 (ej. 0.10 para 10%).")
+            return
+        }
         const call = editing
             ? promotionService.update(editing, form)
             : promotionService.create(form)
@@ -73,7 +78,7 @@ const AdminPromotions = () => {
                         </div>
                         <div>
                             <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>TASA (0-1)</div>
-                            <input type="number" step="0.01" value={form.discountRate}
+                            <input type="number" step="0.01" min="0.01" max="0.99" value={form.discountRate}
                                 onChange={e => setForm(f => ({ ...f, discountRate: e.target.value }))}
                                 placeholder="Ej. 0.15"
                                 style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }} />

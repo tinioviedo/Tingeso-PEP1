@@ -7,7 +7,7 @@ import { getPackageImage, getFallbackGradient } from "../utils/packageImages"
 const FeaturedCard = ({ pkg, onClick }) => {
   const [imgError, setImgError] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const imageUrl = getPackageImage(pkg.destination)
+  const imageUrl = getPackageImage(pkg.destination, pkg.packageName)
 
   return (
     <div
@@ -53,12 +53,12 @@ const FeaturedCard = ({ pkg, onClick }) => {
       {/* Price */}
       <div style={{
         position: "absolute", top: 14, right: 14,
-        background: "#F97316", color: "#fff",
+        background: "#fff", color: "#0A2540",
         padding: "5px 12px", borderRadius: 20,
         fontSize: 13, fontWeight: 700,
-        boxShadow: "0 3px 10px rgba(249,115,22,0.4)",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
       }}>
-        ${pkg.price.toLocaleString()}
+        US$ {pkg.price.toLocaleString()}
       </div>
 
       {/* Trip type */}

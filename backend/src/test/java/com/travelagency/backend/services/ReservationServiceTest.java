@@ -85,7 +85,7 @@ class ReservationServiceTest {
         when(reservationRepository.save(any())).thenReturn(reservation);
 
         // When
-        ReservationEntity result = reservationService.createReservation(1L, 10L, 2);
+        ReservationEntity result = reservationService.createReservation(1L, 10L, 2, null);
 
         // Then
         assertThat(result).isNotNull();
@@ -100,7 +100,7 @@ class ReservationServiceTest {
         when(packageService.getPackageById(10L)).thenReturn(pkg);
 
         // When / Then
-        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, 0))
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, 0, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("greater than zero");
     }
@@ -112,7 +112,7 @@ class ReservationServiceTest {
         when(packageService.getPackageById(10L)).thenReturn(pkg);
 
         // When / Then
-        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, -3))
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, -3, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -124,7 +124,7 @@ class ReservationServiceTest {
         when(packageService.getPackageById(10L)).thenReturn(pkg);
 
         // When / Then
-        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, 2))
+        assertThatThrownBy(() -> reservationService.createReservation(1L, 10L, 2, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("not available");
     }
@@ -141,7 +141,7 @@ class ReservationServiceTest {
         when(reservationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         // When
-        ReservationEntity result = reservationService.createReservation(1L, 10L, 3);
+        ReservationEntity result = reservationService.createReservation(1L, 10L, 3, null);
 
         // Then
         assertThat(result.getBaseAmount()).isEqualTo(4500.0);
