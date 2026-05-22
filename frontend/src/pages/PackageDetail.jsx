@@ -349,13 +349,23 @@ const PackageDetail = () => {
 
           {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{error}</div>}
 
-          <button onClick={handleReserve} disabled={reserving || pkg.packageStatus !== "AVAILABLE"} style={{
-            width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",
-            color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
-            fontSize: 15, fontWeight: 500, cursor: pkg.packageStatus === "AVAILABLE" ? "pointer" : "not-allowed"
-          }}>
-            {reserving ? "Procesando..." : pkg.packageStatus === "AVAILABLE" ? "Reservar ahora" : "No disponible"}
-          </button>
+          {!keycloak.authenticated ? (
+            <button onClick={() => keycloak.login()} disabled={pkg.packageStatus !== "AVAILABLE"} style={{
+              width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",
+              color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
+              fontSize: 15, fontWeight: 500, cursor: pkg.packageStatus === "AVAILABLE" ? "pointer" : "not-allowed"
+            }}>
+              {pkg.packageStatus === "AVAILABLE" ? "Inicia sesión para reservar" : "No disponible"}
+            </button>
+          ) : (
+            <button onClick={handleReserve} disabled={reserving || pkg.packageStatus !== "AVAILABLE"} style={{
+              width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",
+              color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
+              fontSize: 15, fontWeight: 500, cursor: pkg.packageStatus === "AVAILABLE" ? "pointer" : "not-allowed"
+            }}>
+              {reserving ? "Procesando..." : pkg.packageStatus === "AVAILABLE" ? "Reservar ahora" : "No disponible"}
+            </button>
+          )}
         </div>
       </div>
     </div>
