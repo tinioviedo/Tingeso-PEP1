@@ -22,6 +22,7 @@ public class PackageController {
 
     // POST /api/v1/packages/
     // Crea un nuevo paquete turístico
+    // ADMIN
     @PostMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> savePackage(@RequestBody PackageEntity pkg) {
@@ -30,29 +31,32 @@ public class PackageController {
 
     // GET /api/v1/packages/
     // Retorna todos los paquetes sin filtro de estado
+    // ADMIN
     @GetMapping("/")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')") 
     public ResponseEntity<List<PackageEntity>> getAllPackages() {
         return ResponseEntity.ok(packageService.getAllPackages());
     }
-
     // GET /api/v1/packages/{id}      admin y cliente
     // Retorna el detalle de un paquete específico
+    // AUTENTICADO
     @GetMapping("/{id}")
     public ResponseEntity<PackageEntity> getPackageById(@PathVariable Long id) {
         return ResponseEntity.ok(packageService.getPackageById(id));
     }
 
-    // GET /api/v1/packages/available   publico
+    // GET /api/v1/packages/available
     // Épica 3: retorna paquetes disponibles con cupos y fechas válidas
+    // PÚBLICO
     @GetMapping("/available")
     public ResponseEntity<List<PackageEntity>> getAvailablePackages() {
         return ResponseEntity.ok(packageService.getAvailablePackages());
     }
 
-    // GET /api/v1/packages/search     publico
+    // GET /api/v1/packages/search
     // Épica 3: búsqueda con filtros opcionales
-    // Ejemplo: /api/v1/packages/search?destination=Paris&minPrice=500&maxPrice=2000
+    // PÚBLICO
+
     @GetMapping("/search")
     public ResponseEntity<List<PackageEntity>> searchPackages(
             @RequestParam(required = false) String destination,
@@ -66,6 +70,7 @@ public class PackageController {
 
     // PUT /api/v1/packages/{id}
     // Actualiza datos de un paquete existente
+    // ADMIN
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> updatePackage(
@@ -76,9 +81,7 @@ public class PackageController {
 
     // PATCH /api/v1/packages/{id}/status
     // Cambia SOLO el estado del paquete
-    // Body JSON: { "packageStatus": "CANCELLED" }
-    // PackageStatus.valueOf() convierte el String del JSON al Enum automáticamente
-    // Si el string no existe en el Enum, Java lanza IllegalArgumentException solo
+    // ADMIN
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PackageEntity> changeStatus(

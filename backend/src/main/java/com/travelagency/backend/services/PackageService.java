@@ -7,6 +7,7 @@ import com.travelagency.backend.utils.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,16 +77,25 @@ public class PackageService {
     // Filtramos en memoria sobre los paquetes disponibles para evitar el bug
     // conocido de JPQL con (:param IS NULL OR ...) y parámetros numéricos en PostgreSQL.
     public List<PackageEntity> searchPackage(String destination, Double minPrice, Double maxPrice, String tripType) {
+        String normalizedDestination = normalizeText(destination);
         return packageRepository.findAvailablePackages(PackageStatus.AVAILABLE, LocalDate.now())
                 .stream()
                 .filter(p -> destination == null || destination.isBlank() ||
-                        p.getDestination().toLowerCase().contains(destination.toLowerCase()) ||
-                        p.getPackageName().toLowerCase().contains(destination.toLowerCase()))
+                        normalizeText(p.getDestination()).contains(normalizedDestination) ||
+                        normalizeText(p.getPackageName()).contains(normalizedDestination))
                 .filter(p -> minPrice == null || p.getPrice() >= minPrice)
                 .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
                 .filter(p -> tripType == null || tripType.isBlank() ||
                         (p.getTripType() != null && p.getTripType().equalsIgnoreCase(tripType)))
                 .collect(Collectors.toList());
+    }
+
+    // Quita tildes y pasa a minúsculas para comparar sin importar acentos.
+    // Ejemplo: "París" -> "paris"
+    private String normalizeText(String s) {
+        if (s == null) return "";
+        return Normalizer.normalize(s.toLowerCase(), Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }
 
 

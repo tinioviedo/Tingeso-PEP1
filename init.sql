@@ -371,7 +371,7 @@ WHERE NOT EXISTS (SELECT 1 FROM discounts LIMIT 1);
 -- Insert promotions only if table is empty
 INSERT INTO promotions (name, discount_rate, start_date, end_date, active)
 SELECT * FROM (VALUES
-  ('Promo Mayo', 0.05, DATE '2026-05-01', DATE '2026-05-31', true),
-  ('Super Promo Flash', 0.15, DATE '2026-05-01', DATE '2026-05-31', true)
+  ('Promo Invierno', 0.05, DATE '2026-06-01', DATE '2026-08-31', true),
+  ('Super Promo Flash', 0.15, DATE '2026-06-01', DATE '2026-07-31', true)
 ) AS v(name, discount_rate, start_date, end_date, active)
 WHERE NOT EXISTS (SELECT 1 FROM promotions LIMIT 1);
