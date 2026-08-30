@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import reservationService from "../services/reservation.service"
+import ConfirmModal from "../components/ConfirmModal"
 
 const statusColors = {
     PENDING: { bg: "#FAEEDA", color: "#854F0B" },
@@ -13,6 +14,7 @@ const AdminReservations = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
+    const [confirmId, setConfirmId] = useState(null)
 
     const load = () => {
         reservationService.getAll()
@@ -24,7 +26,7 @@ const AdminReservations = () => {
     useEffect(() => { load() }, [])
 
     const handleCancel = (id) => {
-        if (!window.confirm("¿Cancelar esta reserva?")) return
+        setConfirmId(null)
         reservationService.cancel(id)
             .then(() => { setSuccess("Reserva cancelada."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
@@ -35,6 +37,16 @@ const AdminReservations = () => {
     return (
         <div style={{ padding: "0 24px" }}>
             <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Todas las reservas</h2>
+
+            <ConfirmModal
+                open={confirmId !== null}
+                title="Cancelar reserva"
+                message="¿Estás seguro de que quieres cancelar esta reserva?"
+                confirmLabel="Cancelar reserva"
+                danger
+                onConfirm={() => handleCancel(confirmId)}
+                onCancel={() => setConfirmId(null)}
+            />
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
@@ -64,7 +76,7 @@ const AdminReservations = () => {
                         </span>
                         <div>
                             {res.reservationStatus === "PENDING" && (
-                                <button onClick={() => handleCancel(res.id)}
+                                <button onClick={() => setConfirmId(res.id)}
                                     style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
                                     Cancelar
                                 </button>

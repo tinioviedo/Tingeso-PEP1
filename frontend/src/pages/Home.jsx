@@ -142,8 +142,8 @@ const Home = () => {
           color: "#fff", margin: "0 0 14px",
           letterSpacing: -1.5, lineHeight: 1.1,
         }}>
-          El viaje que siempre
-          <span style={{ color: "#F97316" }}> imaginaste</span>
+          El viaje que siempre{" "}
+          <span style={{ color: "#F97316" }}>imaginaste</span>
         </h1>
         <p style={{
           fontSize: 16, color: "rgba(255,255,255,0.60)",

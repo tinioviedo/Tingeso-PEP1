@@ -1,0 +1,13 @@
+{
+  "registros_en_bd": 10000,
+  "vus": 50,
+  "peticiones_totales": 347,
+  "peticiones_por_seg": 9.88,
+  "duracion_avg_ms": 3315.19,
+  "duracion_med_ms": 3417.85,
+  "duracion_max_ms": 4449.64,
+  "duracion_p90_ms": 3889.77,
+  "duracion_p95_ms": 3981.03,
+  "tasa_fallos_pct": 0,
+  "datos_recibidos_mb": 3513.06
+}

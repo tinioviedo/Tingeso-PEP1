@@ -386,9 +386,10 @@ class DiscountServiceTest {
     void updateDiscount_nonExistingId_throwsIllegalArgument() {
         // Given
         when(discountRepository.findById(99L)).thenReturn(Optional.empty());
+        DiscountEntity updates = new DiscountEntity();
 
         // When / Then
-        assertThatThrownBy(() -> discountService.updateDiscount(99L, new DiscountEntity()))
+        assertThatThrownBy(() -> discountService.updateDiscount(99L, updates))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("99");
     }

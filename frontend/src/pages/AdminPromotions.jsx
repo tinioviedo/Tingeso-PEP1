@@ -51,6 +51,12 @@ const AdminPromotions = () => {
         return promo.active && promo.startDate <= today && promo.endDate >= today
     }
 
+    // Etiqueta del estado: vigente hoy, activada pero aún no vigente, o desactivada.
+    const statusLabel = (promo) => {
+        if (isActive(promo)) return "Activa"
+        return promo.active ? "Programada" : "Inactiva"
+    }
+
     if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
 
     return (
@@ -118,7 +124,7 @@ const AdminPromotions = () => {
                         <span style={{ color: "#666" }}>{p.startDate}</span>
                         <span style={{ color: "#666" }}>{p.endDate}</span>
                         <span style={{ fontSize: 11, fontWeight: 500, color: isActive(p) ? "#3B6D11" : "#5F5E5A" }}>
-                            {isActive(p) ? "Activa" : p.active ? "Programada" : "Inactiva"}
+                            {statusLabel(p)}
                         </span>
                         <div style={{ display: "flex", gap: 6 }}>
                             <button onClick={() => { setForm(p); setEditing(p.id); setShowForm(true); setError(""); setSuccess("") }}

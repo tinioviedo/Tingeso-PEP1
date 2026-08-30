@@ -35,6 +35,13 @@ const AdminReports = () => {
         EXPIRED: { bg: "#F1EFE8", color: "#5F5E5A" },
     }
 
+    // Color del medallón según la posición en el ranking: 1º, 2º y resto.
+    const rankColor = (index) => {
+        if (index === 0) return "#F58426"
+        if (index === 1) return "#006BB6"
+        return "#BEC0C2"
+    }
+
     return (
         <div style={{ padding: "0 24px" }}>
             <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Reportes</h2>
@@ -63,7 +70,7 @@ const AdminReports = () => {
                 <>
                     {/* Sales report */}
                     <h3 style={{ fontWeight: 500, marginBottom: 16 }}>
-                        Ventas por período
+                        <span>Ventas por período</span>
                         <span style={{ fontSize: 13, color: "#888", fontWeight: 400, marginLeft: 10 }}>({sales.length} reservas)</span>
                     </h3>
                     <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden", marginBottom: 32 }}>
@@ -105,7 +112,7 @@ const AdminReports = () => {
 
                     {/* Ranking */}
                     <h3 style={{ fontWeight: 500, marginBottom: 16 }}>
-                        Ranking de paquetes
+                        <span>Ranking de paquetes</span>
                         <span style={{ fontSize: 13, color: "#888", fontWeight: 400, marginLeft: 10 }}>por número de reservas</span>
                     </h3>
                     <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
@@ -118,7 +125,7 @@ const AdminReports = () => {
                         {ranking.map((item, index) => (
                             <div key={item.packageId} style={{ display: "grid", gridTemplateColumns: "40px 2fr 1fr 1fr 1fr", padding: "12px 16px", borderBottom: "1px solid #f5f5f5", alignItems: "center", fontSize: 13 }}>
                                 <span style={{
-                                    width: 24, height: 24, borderRadius: "50%", background: index === 0 ? "#F58426" : index === 1 ? "#006BB6" : "#BEC0C2",
+                                    width: 24, height: 24, borderRadius: "50%", background: rankColor(index),
                                     color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 500
                                 }}>{index + 1}</span>
                                 <span style={{ fontWeight: 500 }}>{item.packageName}</span>

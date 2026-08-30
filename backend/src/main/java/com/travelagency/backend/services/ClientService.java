@@ -2,7 +2,6 @@ package com.travelagency.backend.services;
 
 import com.travelagency.backend.entities.ClientEntity;
 import com.travelagency.backend.repositories.ClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.travelagency.backend.utils.ValidationUtils;
 
@@ -11,8 +10,11 @@ import java.util.List;
 @Service
 
 public class ClientService {
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
+
+    public ClientService(ClientRepository clientRepository) {
+        this.clientRepository = clientRepository;
+    }
 
     //CRUD : a)save/create b)read, c)update, d)delete
 
@@ -65,12 +67,13 @@ public class ClientService {
         return clientRepository.save(existingClient);
     }
 
-    //desativar cuenta del cliente autenteicado
+    // Baja lógica solicitada por el propio cliente autenticado.
+    // Delega en la única implementación para no duplicar la lógica.
     public boolean deactivateMyAccount(Long id) {
-        ClientEntity client = getClientById(id);
-        return deactivate(client);
+        return deactivateClientById(id);
     }
-    //Delete
+
+    // Baja lógica de un cliente ejecutada por un administrador.
     public boolean deactivateClientById(Long id) {
         ClientEntity client = getClientById(id);
         return deactivate(client);

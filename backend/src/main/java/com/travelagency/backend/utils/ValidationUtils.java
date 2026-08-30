@@ -1,6 +1,10 @@
 package com.travelagency.backend.utils;
 
-public class ValidationUtils {
+public final class ValidationUtils {
+
+    // Clase utilitaria: sólo expone métodos estáticos, no debe instanciarse.
+    private ValidationUtils() {
+    }
 
     public static void validateField(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {

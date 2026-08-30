@@ -6,7 +6,6 @@ import com.travelagency.backend.entities.ReservationEntity;
 import com.travelagency.backend.enums.PackageStatus;
 import com.travelagency.backend.enums.ReservationStatus;
 import com.travelagency.backend.repositories.ReservationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +17,22 @@ import java.util.Map;
 @Service
 public class ReservationService {
 
-    @Autowired
-    private ReservationRepository reservationRepository;
-    @Autowired
-    private PackageService packageService;
-    @Autowired
-    private ClientService clientService;
-    @Autowired
-    private DiscountService discountService;
+    private static final String RESERVATION_NOT_FOUND = "Reservation not found: ";
+
+    private final ReservationRepository reservationRepository;
+    private final PackageService packageService;
+    private final ClientService clientService;
+    private final DiscountService discountService;
+
+    public ReservationService(ReservationRepository reservationRepository,
+                              PackageService packageService,
+                              ClientService clientService,
+                              DiscountService discountService) {
+        this.reservationRepository = reservationRepository;
+        this.packageService = packageService;
+        this.clientService = clientService;
+        this.discountService = discountService;
+    }
 
     public ReservationEntity createReservation(Long clientId, Long packageId, Integer quantity, String companions) {
         ClientEntity client = clientService.getActiveClientById(clientId);
@@ -57,9 +64,24 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
+    // Cotización SIN efectos secundarios: no descuenta cupos ni crea nada.
+    // Se usa en el frontend para mostrar el monto real (con descuentos)
+    // ANTES de que el cliente confirme la reserva — regla de negocio
+    // "transparencia de descuentos" del enunciado (Épica 4).
+    public DiscountService.DiscountResult quoteReservation(Long clientId, Long packageId, Integer quantity) {
+        PackageEntity pkg = packageService.getPackageById(packageId);
+
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero.");
+        }
+
+        double baseAmount = pkg.getPrice() * quantity;
+        return discountService.calculate(clientId, quantity, baseAmount, false);
+    }
+
     public ReservationEntity cancelReservation(Long reservationId) {
         ReservationEntity reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+                .orElseThrow(() -> new IllegalArgumentException(RESERVATION_NOT_FOUND + reservationId));
 
         if (reservation.getReservationStatus() == ReservationStatus.CANCELLED) {
             throw new IllegalArgumentException("Reservation is already cancelled.");
@@ -80,7 +102,7 @@ public class ReservationService {
 
     public ReservationEntity getReservationById(Long id) {
         return reservationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException(RESERVATION_NOT_FOUND + id));
     }
 
     public List<ReservationEntity> createMultipleReservations(Long clientId, List<Map<String, Object>> items) {
@@ -146,7 +168,7 @@ public class ReservationService {
     }
     public ReservationEntity confirmReservation(Long reservationId) {
         ReservationEntity reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+                .orElseThrow(() -> new IllegalArgumentException(RESERVATION_NOT_FOUND + reservationId));
         reservation.setReservationStatus(ReservationStatus.CONFIRMED);
         return reservationRepository.save(reservation);
     }

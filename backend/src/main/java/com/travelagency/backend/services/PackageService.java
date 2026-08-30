@@ -4,18 +4,23 @@ import com.travelagency.backend.entities.PackageEntity;
 import com.travelagency.backend.enums.PackageStatus;
 import com.travelagency.backend.repositories.PackageRepository;
 import com.travelagency.backend.utils.ValidationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PackageService {
-    @Autowired
-    private PackageRepository packageRepository;
+
+    private static final String NO_SLOTS_TO_PUBLISH =
+            "No se puede publicar un paquete sin cupos disponibles.";
+
+    private final PackageRepository packageRepository;
+
+    public PackageService(PackageRepository packageRepository) {
+        this.packageRepository = packageRepository;
+    }
 
     //Create . crear el paquete
     public PackageEntity savePackage(PackageEntity newPackage) {
@@ -49,7 +54,7 @@ public class PackageService {
 
         //no sé si deba ver el caso que esté AVAILABLE pero que no tenga cupos??
         if (newPackage.getPackageStatus() == PackageStatus.AVAILABLE && newPackage.getAvailableSlots() <= 0) {
-            throw new IllegalArgumentException("No se puede publicar un paquete sin cupos disponibles.");
+            throw new IllegalArgumentException(NO_SLOTS_TO_PUBLISH);
         }
         return packageRepository.save(newPackage);
     }
@@ -87,11 +92,9 @@ public class PackageService {
                 .filter(p -> maxPrice == null || p.getPrice() <= maxPrice)
                 .filter(p -> tripType == null || tripType.isBlank() ||
                         (p.getTripType() != null && p.getTripType().equalsIgnoreCase(tripType)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // Quita tildes y pasa a minúsculas para comparar sin importar acentos.
-    // Ejemplo: "París" -> "paris"
     private String normalizeText(String s) {
         if (s == null) return "";
         return Normalizer.normalize(s.toLowerCase(), Normalizer.Form.NFD)
@@ -107,7 +110,16 @@ public class PackageService {
         // Si slots=20 y availableSlots=15, entonces 5 ya están reservados
         int reservedSlots = existingPackage.getSlots() - existingPackage.getAvailableSlots();
 
-        // Actualizar campos de texto si vienen
+        applyDescriptiveFields(existingPackage, updatesPackage);
+        applyDates(existingPackage, updatesPackage, reservedSlots);
+        applySlots(existingPackage, updatesPackage, reservedSlots);
+        applyStatus(existingPackage, updatesPackage);
+
+        return packageRepository.save(existingPackage);
+    }
+
+    // Campos descriptivos y precio: se sobrescriben sólo si vienen informados.
+    private void applyDescriptiveFields(PackageEntity existingPackage, PackageEntity updatesPackage) {
         if (updatesPackage.getPackageName() != null && !updatesPackage.getPackageName().isBlank()) {
             existingPackage.setPackageName(updatesPackage.getPackageName());
         }
@@ -126,19 +138,17 @@ public class PackageService {
         if (updatesPackage.getTripType() != null) {
             existingPackage.setTripType(updatesPackage.getTripType());
         }
-
-        // Actualizar precio si viene y es válido
         if (updatesPackage.getPrice() > 0) {
             existingPackage.setPrice(updatesPackage.getPrice());
         }
+    }
 
-        // Regla: NO modificar fechas si ya hay reservas
-        // Se valida UNA SOLA VEZ antes de tocar cualquier fecha
+    // Regla: no se pueden modificar fechas de un paquete que ya tiene reservas.
+    // La validación se hace UNA SOLA VEZ antes de tocar cualquier fecha.
+    private void applyDates(PackageEntity existingPackage, PackageEntity updatesPackage, int reservedSlots) {
         if ((updatesPackage.getStartDate() != null || updatesPackage.getEndDate() != null) && reservedSlots > 0) {
             throw new IllegalArgumentException("No se pueden modificar fechas de un paquete con reservas.");
         }
-
-        // Si pasó la validación, actualizar cada fecha por separado
         if (updatesPackage.getStartDate() != null) {
             existingPackage.setStartDate(updatesPackage.getStartDate());
         }
@@ -148,34 +158,37 @@ public class PackageService {
             }
             existingPackage.setEndDate(updatesPackage.getEndDate());
         }
+    }
 
-        // Regla: NO reducir cupos totales por debajo de los ya reservados
-        if (updatesPackage.getSlots() != null) {
-            if (updatesPackage.getSlots() <= 0) {
-                throw new IllegalArgumentException("Los cupos deben ser mayores que cero.");
-            }
-            if (updatesPackage.getSlots() < reservedSlots) {
-                throw new IllegalArgumentException(
-                        "No se pueden reducir los cupos a " + updatesPackage.getSlots() +
-                                " porque hay " + reservedSlots + " reservados.");
-            }
-            // diff ajusta los disponibles sin perder las reservas hechas
-            // Ej: tenías 20 totales, 15 disponibles. Subes a 25. diff=+5. Disponibles pasan a 20.
-            int diff = updatesPackage.getSlots() - existingPackage.getSlots();
-            existingPackage.setSlots(updatesPackage.getSlots());
-            existingPackage.setAvailableSlots(existingPackage.getAvailableSlots() + diff);
+    // Regla: no se pueden reducir los cupos totales por debajo de los ya reservados.
+    private void applySlots(PackageEntity existingPackage, PackageEntity updatesPackage, int reservedSlots) {
+        if (updatesPackage.getSlots() == null) {
+            return;
         }
-
-        // Cambiar estado si viene
-        if (updatesPackage.getPackageStatus() != null) {
-            if (updatesPackage.getPackageStatus() == PackageStatus.AVAILABLE
-                    && existingPackage.getAvailableSlots() <= 0) {
-                throw new IllegalArgumentException("No se puede publicar un paquete sin cupos disponibles.");
-            }
-            existingPackage.setPackageStatus(updatesPackage.getPackageStatus());
+        if (updatesPackage.getSlots() <= 0) {
+            throw new IllegalArgumentException("Los cupos deben ser mayores que cero.");
         }
+        if (updatesPackage.getSlots() < reservedSlots) {
+            throw new IllegalArgumentException(
+                    "No se pueden reducir los cupos a " + updatesPackage.getSlots() +
+                            " porque hay " + reservedSlots + " reservados.");
+        }
+        // diff ajusta los disponibles sin perder las reservas hechas
+        // Ej: tenías 20 totales, 15 disponibles. Subes a 25. diff=+5. Disponibles pasan a 20.
+        int diff = updatesPackage.getSlots() - existingPackage.getSlots();
+        existingPackage.setSlots(updatesPackage.getSlots());
+        existingPackage.setAvailableSlots(existingPackage.getAvailableSlots() + diff);
+    }
 
-        return packageRepository.save(existingPackage);
+    private void applyStatus(PackageEntity existingPackage, PackageEntity updatesPackage) {
+        if (updatesPackage.getPackageStatus() == null) {
+            return;
+        }
+        if (updatesPackage.getPackageStatus() == PackageStatus.AVAILABLE
+                && existingPackage.getAvailableSlots() <= 0) {
+            throw new IllegalArgumentException(NO_SLOTS_TO_PUBLISH);
+        }
+        existingPackage.setPackageStatus(updatesPackage.getPackageStatus());
     }
 
     // ── CAMBIAR SOLO EL ESTADO ────────────────────────────────────────────────
@@ -186,7 +199,7 @@ public class PackageService {
         PackageEntity pkg = getPackageById(id);
 
         if (newStatus == PackageStatus.AVAILABLE && pkg.getAvailableSlots() <= 0) {
-            throw new IllegalArgumentException("No se puede publicar un paquete sin cupos disponibles.");
+            throw new IllegalArgumentException(NO_SLOTS_TO_PUBLISH);
         }
 
         pkg.setPackageStatus(newStatus);

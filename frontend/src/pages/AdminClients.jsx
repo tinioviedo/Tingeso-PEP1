@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react"
 import clientService from "../services/client.service"
+import ConfirmModal from "../components/ConfirmModal"
 
 const AdminClients = () => {
     const [clients, setClients] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
+    const [confirmId, setConfirmId] = useState(null)
 
     const load = () => {
         clientService.getAll()
@@ -17,7 +19,7 @@ const AdminClients = () => {
     useEffect(() => { load() }, [])
 
     const handleDeactivate = (id) => {
-        if (!window.confirm("¿Desactivar este cliente?")) return
+        setConfirmId(null)
         clientService.deactivateAdmin(id)
             .then(() => { setSuccess("Cliente desactivado."); load() })
             .catch(err => setError(err.response?.data?.message || "Error."))
@@ -28,6 +30,16 @@ const AdminClients = () => {
     return (
         <div style={{ padding: "0 24px" }}>
             <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Gestionar clientes</h2>
+
+            <ConfirmModal
+                open={confirmId !== null}
+                title="Desactivar cliente"
+                message="¿Estás seguro de que quieres desactivar este cliente?"
+                confirmLabel="Desactivar"
+                danger
+                onConfirm={() => handleDeactivate(confirmId)}
+                onCancel={() => setConfirmId(null)}
+            />
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
@@ -52,7 +64,7 @@ const AdminClients = () => {
                         </span>
                         <div>
                             {client.active && (
-                                <button onClick={() => handleDeactivate(client.id)}
+                                <button onClick={() => setConfirmId(client.id)}
                                     style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "5px 10px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>
                                     Desactivar
                                 </button>

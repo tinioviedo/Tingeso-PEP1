@@ -17,24 +17,27 @@ import AdminReports from './pages/AdminReports'
 import AdminLayout from './components/AdminLayout'
 import RegisterProfile from './pages/RegisterProfile'
 
+// Definido a nivel de módulo (no dentro de App) para que React no lo recree en
+// cada render: obtiene la sesión por su propio hook en lugar del closure padre.
+const PrivateRoute = ({ element, rolesAllowed }) => {
+  const { keycloak } = useKeycloak()
+
+  if (!keycloak.authenticated) {
+    keycloak.login()
+    return null
+  }
+
+  const roles = keycloak.tokenParsed?.realm_access?.roles || []
+  if (rolesAllowed && !rolesAllowed.some(r => roles.includes(r))) {
+    return <h2>No tienes permiso para ver esta página.</h2>
+  }
+  return element
+}
+
 function App() {
-  const { keycloak, initialized } = useKeycloak()
+  const { initialized } = useKeycloak()
 
   if (!initialized) return <div>Loading...</div>
-
-  const isLoggedIn = keycloak.authenticated
-  const roles = keycloak.tokenParsed?.realm_access?.roles || []
-
-  const PrivateRoute = ({ element, rolesAllowed }) => {
-    if (!isLoggedIn) {
-      keycloak.login()
-      return null
-    }
-    if (rolesAllowed && !rolesAllowed.some(r => roles.includes(r))) {
-      return <h2>No tienes permiso para ver esta página.</h2>
-    }
-    return element
-  }
 
   return (
     <Router>

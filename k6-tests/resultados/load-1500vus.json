@@ -1,0 +1,13 @@
+{
+  "vus": 1500,
+  "peticiones_totales": 13186,
+  "peticiones_por_seg": 292.67,
+  "duracion_avg_ms": 3832.29,
+  "duracion_min_ms": 0,
+  "duracion_med_ms": 0,
+  "duracion_max_ms": 17525.89,
+  "duracion_p90_ms": 13699.82,
+  "duracion_p95_ms": 13879.92,
+  "tasa_fallos_pct": 66.37,
+  "checks_ok_pct": 33.62
+}

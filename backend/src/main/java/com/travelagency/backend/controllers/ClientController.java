@@ -2,7 +2,6 @@ package com.travelagency.backend.controllers;
 
 import com.travelagency.backend.entities.ClientEntity;
 import com.travelagency.backend.services.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,8 +13,11 @@ import java.util.List;
 @RequestMapping("/api/v1/clients")
 @CrossOrigin("*")
 public class ClientController {
-    @Autowired
-    ClientService clientService;
+    private final ClientService clientService;
+
+    public ClientController(ClientService clientService) {
+        this.clientService = clientService;
+    }
 
     //create, POST /api/v1/clients . registrar perfil del cliente.
     @PostMapping("/")

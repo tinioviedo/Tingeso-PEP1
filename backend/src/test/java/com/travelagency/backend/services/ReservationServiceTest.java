@@ -597,9 +597,10 @@ class ReservationServiceTest {
         java.util.Map<String, Object> item = java.util.Map.of("packageId", "10", "quantity", "2");
         when(clientService.getActiveClientById(1L)).thenReturn(client);
         when(packageService.getPackageById(10L)).thenReturn(pkg);
+        List<java.util.Map<String, Object>> items = List.of(item);
 
         // When / Then
-        assertThatThrownBy(() -> reservationService.createMultipleReservations(1L, List.of(item)))
+        assertThatThrownBy(() -> reservationService.createMultipleReservations(1L, items))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("not available");
     }

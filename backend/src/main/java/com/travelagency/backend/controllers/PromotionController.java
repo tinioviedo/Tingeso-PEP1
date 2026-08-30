@@ -2,7 +2,6 @@ package com.travelagency.backend.controllers;
 
 import com.travelagency.backend.entities.PromotionEntity;
 import com.travelagency.backend.services.PromotionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,8 +15,11 @@ import java.util.Map;
 @CrossOrigin("*")
 public class PromotionController {
 
-    @Autowired
-    private PromotionService promotionService;
+    private final PromotionService promotionService;
+
+    public PromotionController(PromotionService promotionService) {
+        this.promotionService = promotionService;
+    }
 
     @PostMapping("/")
     @PreAuthorize("hasRole('ADMIN')")

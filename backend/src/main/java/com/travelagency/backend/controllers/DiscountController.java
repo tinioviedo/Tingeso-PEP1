@@ -2,7 +2,6 @@ package com.travelagency.backend.controllers;
 
 import com.travelagency.backend.entities.DiscountEntity;
 import com.travelagency.backend.services.DiscountService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,24 +15,24 @@ import java.util.Map;
 @CrossOrigin("*")
 public class DiscountController {
 
-    @Autowired
-    DiscountService discountService;
+    private final DiscountService discountService;
 
-    // POST /api/v1/discounts/
+    public DiscountController(DiscountService discountService) {
+        this.discountService = discountService;
+    }
+
     @PostMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> createDiscount(@RequestBody DiscountEntity discount) {
         return ResponseEntity.status(HttpStatus.CREATED).body(discountService.createDiscount(discount));
     }
 
-    // GET /api/v1/discounts/
     @GetMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DiscountEntity>> getAllDiscounts() {
         return ResponseEntity.ok(discountService.getAllDiscounts());
     }
 
-    // PUT /api/v1/discounts/{id}
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> updateDiscount(
@@ -42,7 +41,6 @@ public class DiscountController {
         return ResponseEntity.ok(discountService.updateDiscount(id, updates));
     }
 
-    // PATCH /api/v1/discounts/{id}/status
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountEntity> changeStatus(
