@@ -2,7 +2,6 @@ package com.travelagency.backend.controllers;
 
 import com.travelagency.backend.entities.ReservationEntity;
 import com.travelagency.backend.services.ReportService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,10 +16,12 @@ import java.util.Map;
 @CrossOrigin("*")
 public class ReportController {
 
-    @Autowired
-    ReportService reportService;
+    private final ReportService reportService;
 
-    // GET /api/v1/reports/sales?startDate=2026-01-01&endDate=2026-12-31
+    public ReportController(ReportService reportService) {
+        this.reportService = reportService;
+    }
+
     @GetMapping("/sales")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ReservationEntity>> getSalesByPeriod(
@@ -29,7 +30,6 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getSalesByPeriod(startDate, endDate));
     }
 
-    // GET /api/v1/reports/ranking?startDate=2026-01-01&endDate=2026-12-31
     @GetMapping("/ranking")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, Object>>> getPackageRankingByPeriod(

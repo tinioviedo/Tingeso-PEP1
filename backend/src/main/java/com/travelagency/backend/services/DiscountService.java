@@ -7,7 +7,6 @@ import com.travelagency.backend.enums.ReservationStatus;
 import com.travelagency.backend.repositories.DiscountRepository;
 import com.travelagency.backend.repositories.PromotionRepository;
 import com.travelagency.backend.repositories.ReservationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,13 +20,20 @@ public class DiscountService {
 
     private static final double MAX_TOTAL_DISCOUNT_RATE = 0.20;
 
-    @Autowired
-    private DiscountRepository discountRepository;
+    // Ventana temporal (en días) para el descuento por múltiples paquetes.
+    private static final int MULTIPLE_PACKAGES_WINDOW_DAYS = 30;
 
-    @Autowired
-    private ReservationRepository reservationRepository;
-    @Autowired
-    private PromotionRepository promotionRepository;
+    private final DiscountRepository discountRepository;
+    private final ReservationRepository reservationRepository;
+    private final PromotionRepository promotionRepository;
+
+    public DiscountService(DiscountRepository discountRepository,
+                           ReservationRepository reservationRepository,
+                           PromotionRepository promotionRepository) {
+        this.discountRepository = discountRepository;
+        this.reservationRepository = reservationRepository;
+        this.promotionRepository = promotionRepository;
+    }
 
     public DiscountEntity createDiscount(DiscountEntity discount) {
         if (discountRepository.findByDiscountTypeAndActiveTrue(discount.getDiscountType()).isPresent()) {
@@ -69,68 +75,87 @@ public class DiscountService {
 
     public DiscountResult calculate(Long clientId, int quantity, double baseAmount, boolean isMultiplePackagesOperation) {
         List<String> applied = new ArrayList<>();
-        double totalDiscountRate = 0.0;
 
-        // descuento de GROUP
-        Optional<DiscountEntity> groupDiscount = discountRepository
-                .findByDiscountTypeAndActiveTrue(DiscountType.GROUP);
-        if (groupDiscount.isPresent() && quantity >= groupDiscount.get().getMinThreshold()) {
-            totalDiscountRate += groupDiscount.get().getDiscountRate();
-            applied.add("Descuento grupal: " + (int)(groupDiscount.get().getDiscountRate() * 100) + "%");
-        }
+        double totalDiscountRate = groupRate(quantity, applied)
+                + frequentClientRate(clientId, applied)
+                + multiplePackagesRate(clientId, isMultiplePackagesOperation, applied)
+                + activePromotionsRate(applied);
 
-        // descuento de FREQUENT_CLIENT
-        Optional<DiscountEntity> frequentDiscount = discountRepository
-                .findByDiscountTypeAndActiveTrue(DiscountType.FREQUENT_CLIENT);
-        if (frequentDiscount.isPresent()) {
-            long paidReservations = reservationRepository
-                    .countByClient_IdAndReservationStatus(clientId, ReservationStatus.CONFIRMED);
-            if (paidReservations >= frequentDiscount.get().getMinThreshold()) {
-                totalDiscountRate += frequentDiscount.get().getDiscountRate();
-                applied.add("Descuento cliente frecuente: " + (int)(frequentDiscount.get().getDiscountRate() * 100) + "%");
-            }
-        }
-        // descuento por compra de MULTIPLE_PACKAGE
-        Optional<DiscountEntity> multipleDiscount = discountRepository
-                .findByDiscountTypeAndActiveTrue(DiscountType.MULTIPLE_PACKAGES);
-        if (multipleDiscount.isPresent()) {
-            boolean applies = false;
-            // 2 casos (A y B)
-            // Caso A: misma operación con más de un paquete
-            if (isMultiplePackagesOperation) {
-                applies = true;
-            } else {
-                // Caso B: período definido (últimos 30 días)
-                LocalDateTime windowStart = LocalDateTime.now().minusDays(30);
-                long recentReservations = reservationRepository
-                        .countByClient_IdAndReservationDateAfter(clientId, windowStart);
-                if (recentReservations >= multipleDiscount.get().getMinThreshold()) {
-                    applies = true;
-                }
-            }
-
-            if (applies) {
-                totalDiscountRate += multipleDiscount.get().getDiscountRate();
-                applied.add("Descuento múltiples paquetes: " + (int)(multipleDiscount.get().getDiscountRate() * 100) + "%");
-            }
-        }
-        // PROMOTIONS — active in current date range
-        List<PromotionEntity> activePromotions = promotionRepository.findActivePromotions(LocalDate.now());
-        for (PromotionEntity promo : activePromotions) {
-            totalDiscountRate += promo.getDiscountRate();
-            applied.add("Promoción '" + promo.getName() + "': " + (int)(promo.getDiscountRate() * 100) + "%");
-        }
-        // Limite maximo 20%
-        if (totalDiscountRate > MAX_TOTAL_DISCOUNT_RATE) {
-            totalDiscountRate = MAX_TOTAL_DISCOUNT_RATE;
-        }
+        // El descuento acumulado nunca puede superar el tope configurado.
+        totalDiscountRate = Math.min(totalDiscountRate, MAX_TOTAL_DISCOUNT_RATE);
 
         double discountAmount = baseAmount * totalDiscountRate;
-        double totalAmount = baseAmount - discountAmount;
-
-        if (totalAmount < 0) totalAmount = 0.0;
+        double totalAmount = Math.max(baseAmount - discountAmount, 0.0);
 
         return new DiscountResult(discountAmount, totalAmount, String.join(", ", applied));
+    }
+
+    // Descuento grupal: aplica cuando la cantidad de pasajeros alcanza el umbral configurado.
+    private double groupRate(int quantity, List<String> applied) {
+        Optional<DiscountEntity> groupDiscount = discountRepository
+                .findByDiscountTypeAndActiveTrue(DiscountType.GROUP);
+        if (groupDiscount.isEmpty() || quantity < groupDiscount.get().getMinThreshold()) {
+            return 0.0;
+        }
+        double rate = groupDiscount.get().getDiscountRate();
+        applied.add("Descuento grupal: " + toPercent(rate) + "%");
+        return rate;
+    }
+
+    // Cliente frecuente: se cuentan las reservas ya confirmadas (pagadas) del cliente.
+    private double frequentClientRate(Long clientId, List<String> applied) {
+        Optional<DiscountEntity> frequentDiscount = discountRepository
+                .findByDiscountTypeAndActiveTrue(DiscountType.FREQUENT_CLIENT);
+        if (frequentDiscount.isEmpty()) {
+            return 0.0;
+        }
+        long paidReservations = reservationRepository
+                .countByClient_IdAndReservationStatus(clientId, ReservationStatus.CONFIRMED);
+        if (paidReservations < frequentDiscount.get().getMinThreshold()) {
+            return 0.0;
+        }
+        double rate = frequentDiscount.get().getDiscountRate();
+        applied.add("Descuento cliente frecuente: " + toPercent(rate) + "%");
+        return rate;
+    }
+
+    // Múltiples paquetes, dos casos posibles:
+    //   Caso A: la misma operación incluye más de un paquete.
+    //   Caso B: el cliente acumula reservas dentro de la ventana de días definida.
+    private double multiplePackagesRate(Long clientId, boolean isMultiplePackagesOperation, List<String> applied) {
+        Optional<DiscountEntity> multipleDiscount = discountRepository
+                .findByDiscountTypeAndActiveTrue(DiscountType.MULTIPLE_PACKAGES);
+        if (multipleDiscount.isEmpty()) {
+            return 0.0;
+        }
+        boolean applies = isMultiplePackagesOperation
+                || hasRecentReservations(clientId, multipleDiscount.get().getMinThreshold());
+        if (!applies) {
+            return 0.0;
+        }
+        double rate = multipleDiscount.get().getDiscountRate();
+        applied.add("Descuento múltiples paquetes: " + toPercent(rate) + "%");
+        return rate;
+    }
+
+    private boolean hasRecentReservations(Long clientId, double minThreshold) {
+        LocalDateTime windowStart = LocalDateTime.now().minusDays(MULTIPLE_PACKAGES_WINDOW_DAYS);
+        return reservationRepository
+                .countByClient_IdAndReservationDateAfter(clientId, windowStart) >= minThreshold;
+    }
+
+    // Promociones vigentes en la fecha actual: todas suman al descuento total.
+    private double activePromotionsRate(List<String> applied) {
+        double rate = 0.0;
+        for (PromotionEntity promo : promotionRepository.findActivePromotions(LocalDate.now())) {
+            rate += promo.getDiscountRate();
+            applied.add("Promoción '" + promo.getName() + "': " + toPercent(promo.getDiscountRate()) + "%");
+        }
+        return rate;
+    }
+
+    private int toPercent(double rate) {
+        return (int) (rate * 100);
     }
 
     public record DiscountResult(

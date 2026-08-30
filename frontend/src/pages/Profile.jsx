@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useKeycloak } from "@react-keycloak/web"
 import clientService from "../services/client.service"
 import { useNavigate } from "react-router-dom"
+import ConfirmModal from "../components/ConfirmModal"
 
 const COUNTRIES = [
   "Afganistán","Albania","Alemania","Andorra","Angola","Antigua y Barbuda","Arabia Saudita",
@@ -50,8 +51,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
-
-    const clientId = keycloak.tokenParsed?.sub
+    const [confirmDeactivate, setConfirmDeactivate] = useState(false)
 
     useEffect(() => {
         const email = keycloak.tokenParsed?.email
@@ -75,7 +75,7 @@ const Profile = () => {
     }
 
     const handleDeactivate = () => {
-        if (!window.confirm("¿Estás seguro de que quieres desactivar tu cuenta? Esta acción no se puede deshacer.")) return
+        setConfirmDeactivate(false)
         clientService.deactivate(client.id)
             .then(() => keycloak.logout())
             .catch(err => setError(err.response?.data?.message || "Error al desactivar la cuenta."))
@@ -84,9 +84,51 @@ const Profile = () => {
     if (loading) return <p style={{ color: "#888" }}>Cargando...</p>
     if (!client) return <p style={{ color: "#888" }}>Perfil no encontrado.</p>
 
+    // Cada campo se muestra como texto, como selector de país o como input,
+    // según si el perfil está en modo edición y de qué campo se trate.
+    const renderFieldValue = (field) => {
+        if (!editing) {
+            return <div style={{ fontSize: 15, color: "#222" }}>{client[field.key] || "—"}</div>
+        }
+        if (field.key === "nationality") {
+            return (
+                <select
+                    value={form.nationality || ""}
+                    onChange={e => setForm(f => ({ ...f, nationality: e.target.value, idDocument: "" }))}
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }}
+                >
+                    <option value="">Selecciona tu país...</option>
+                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            )
+        }
+        const isChileanRut = field.key === "idDocument" && form.nationality === "Chile"
+        return (
+            <input
+                value={form[field.key] || ""}
+                onChange={e => {
+                    const val = isChileanRut ? formatRut(e.target.value) : e.target.value
+                    setForm(f => ({ ...f, [field.key]: val }))
+                }}
+                placeholder={isChileanRut ? "Ej: 12.345.678-9" : ""}
+                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
+            />
+        )
+    }
+
     return (
         <div style={{ maxWidth: 600, padding: "0 24px" }}>
             <h2 style={{ fontWeight: 500, marginBottom: 24 }}>Mi perfil</h2>
+
+            <ConfirmModal
+                open={confirmDeactivate}
+                title="Desactivar cuenta"
+                message="¿Estás seguro de que quieres desactivar tu cuenta? Esta acción no se puede deshacer."
+                confirmLabel="Desactivar cuenta"
+                danger
+                onConfirm={handleDeactivate}
+                onCancel={() => setConfirmDeactivate(false)}
+            />
 
             {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{error}</div>}
             {success && <div style={{ background: "#EAF3DE", color: "#3B6D11", padding: "10px 14px", borderRadius: 8, marginBottom: 16 }}>{success}</div>}
@@ -119,32 +161,7 @@ const Profile = () => {
                         <div style={{ fontSize: 11, color: "#888", marginBottom: 6, fontWeight: 500 }}>
                             {field.label.toUpperCase()}
                         </div>
-                        {editing ? (
-                            field.key === "nationality" ? (
-                                <select
-                                    value={form.nationality || ""}
-                                    onChange={e => setForm(f => ({ ...f, nationality: e.target.value, idDocument: "" }))}
-                                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box", fontFamily: "inherit" }}
-                                >
-                                    <option value="">Selecciona tu país...</option>
-                                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            ) : (
-                                <input
-                                    value={form[field.key] || ""}
-                                    onChange={e => {
-                                        const val = field.key === "idDocument" && form.nationality === "Chile"
-                                            ? formatRut(e.target.value)
-                                            : e.target.value
-                                        setForm(f => ({ ...f, [field.key]: val }))
-                                    }}
-                                    placeholder={field.key === "idDocument" && form.nationality === "Chile" ? "Ej: 12.345.678-9" : ""}
-                                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, boxSizing: "border-box" }}
-                                />
-                            )
-                        ) : (
-                            <div style={{ fontSize: 15, color: "#222" }}>{client[field.key] || "—"}</div>
-                        )}
+                        {renderFieldValue(field)}
                     </div>
                 ))}
 
@@ -175,7 +192,7 @@ const Profile = () => {
                         </button>
                     )}
 
-                    <button onClick={handleDeactivate}
+                    <button onClick={() => setConfirmDeactivate(true)}
                         style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "10px 20px", borderRadius: 8, fontSize: 14, cursor: "pointer" }}>
                         Desactivar cuenta
                     </button>

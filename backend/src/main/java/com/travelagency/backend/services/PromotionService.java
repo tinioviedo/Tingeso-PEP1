@@ -2,7 +2,6 @@ package com.travelagency.backend.services;
 
 import com.travelagency.backend.entities.PromotionEntity;
 import com.travelagency.backend.repositories.PromotionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -11,8 +10,11 @@ import java.util.List;
 @Service
 public class PromotionService {
 
-    @Autowired
-    private PromotionRepository promotionRepository;
+    private final PromotionRepository promotionRepository;
+
+    public PromotionService(PromotionRepository promotionRepository) {
+        this.promotionRepository = promotionRepository;
+    }
 
     public PromotionEntity createPromotion(PromotionEntity promotion) {
         if (promotion.getName() == null || promotion.getName().isBlank()) {

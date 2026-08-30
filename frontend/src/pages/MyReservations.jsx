@@ -3,6 +3,8 @@ import { useKeycloak } from "@react-keycloak/web"
 import reservationService from "../services/reservation.service"
 import paymentService from "../services/payment.service"
 import clientService from "../services/client.service"
+import ConfirmModal from "../components/ConfirmModal"
+import HelpTooltip from "../components/HelpTooltip"
 
 /* ── Payment Success Overlay ───────────────────────────── */
 const PaymentSuccessOverlay = ({ reservation, onViewVoucher, onClose }) => {
@@ -188,9 +190,10 @@ const VoucherModal = ({ reservation, onClose }) => {
                 </div>
 
                 {/* Payment info */}
-                {loadingPay ? (
+                {loadingPay && (
                     <p style={{ fontSize: 12, color: "#aaa", textAlign: "center" }}>Cargando datos del pago...</p>
-                ) : payment ? (
+                )}
+                {!loadingPay && payment && (
                     <div style={{ fontSize: 12, color: "#64748b", marginBottom: 20 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                             <span>Medio de pago</span>
@@ -203,7 +206,7 @@ const VoucherModal = ({ reservation, onClose }) => {
                             </span>
                         </div>
                     </div>
-                ) : null}
+                )}
 
                 <button
                     onClick={onClose}
@@ -220,13 +223,21 @@ const VoucherModal = ({ reservation, onClose }) => {
     )
 }
 
+// Color del valor según la variante que indiquen las props de la fila.
+const rowValueColor = ({ blue, green, discount }) => {
+    if (blue) return "#006BB6"
+    if (green) return "#3B6D11"
+    if (discount) return "#7c3aed"
+    return "#0A2540"
+}
+
 const Row = ({ label, value, bold, blue, green, discount, strike }) => (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, gap: 12 }}>
         <span style={{ fontSize: 13, color: "#64748b", flexShrink: 0 }}>{label}</span>
         <span style={{
             fontSize: 13, textAlign: "right",
             fontWeight: bold ? 600 : 400,
-            color: blue ? "#006BB6" : green ? "#3B6D11" : discount ? "#7c3aed" : "#0A2540",
+            color: rowValueColor({ blue, green, discount }),
             textDecoration: strike ? "line-through" : "none",
         }}>
             {value}
@@ -246,6 +257,7 @@ const MyReservations = () => {
     const [success, setSuccess] = useState("")
     const [justPaidReservation, setJustPaidReservation] = useState(null)
     const [voucherReservation, setVoucherReservation] = useState(null)
+    const [confirmCancelId, setConfirmCancelId] = useState(null)
 
     const email = keycloak.tokenParsed?.email
 
@@ -260,7 +272,7 @@ const MyReservations = () => {
     useEffect(() => { load() }, [])
 
     const handleCancel = (id) => {
-        if (!window.confirm("¿Estás seguro de que quieres cancelar esta reserva?")) return
+        setConfirmCancelId(null)
         reservationService.cancel(id)
             .then(() => { setSuccess("Reserva cancelada."); load() })
             .catch(err => setError(err.response?.data?.message || "Error al cancelar."))
@@ -339,6 +351,15 @@ const MyReservations = () => {
 
     return (
         <div style={{ padding: "0 24px" }}>
+            <ConfirmModal
+                open={confirmCancelId !== null}
+                title="Cancelar reserva"
+                message="¿Estás seguro de que quieres cancelar esta reserva?"
+                confirmLabel="Cancelar reserva"
+                danger
+                onConfirm={() => handleCancel(confirmCancelId)}
+                onCancel={() => setConfirmCancelId(null)}
+            />
             {justPaidReservation && (
                 <PaymentSuccessOverlay
                     reservation={justPaidReservation}
@@ -404,7 +425,7 @@ const MyReservations = () => {
                                         style={{ background: "#F58426", color: "#fff", border: "none", padding: "9px 18px", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                                         Pagar ahora
                                     </button>
-                                    <button onClick={() => handleCancel(res.id)}
+                                    <button onClick={() => setConfirmCancelId(res.id)}
                                         style={{ background: "#fff", color: "#A32D2D", border: "1px solid #A32D2D", padding: "8px 18px", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>
                                         Cancelar
                                     </button>
@@ -432,6 +453,7 @@ const MyReservations = () => {
                                     <input
                                         value={paymentForm.cardNumber}
                                         onChange={e => handleCardNumber(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") handlePay(res.id) }}
                                         placeholder="1234 5678 9012 3456"
                                         inputMode="numeric"
                                         style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${paymentErrors.cardNumber ? "#e53e3e" : "#ddd"}`, fontSize: 14, boxSizing: "border-box" }}
@@ -440,10 +462,11 @@ const MyReservations = () => {
                                 </div>
                                 {/* Expiration */}
                                 <div>
-                                    <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>VENCIMIENTO</div>
+                                    <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>VENCIMIENTO<HelpTooltip text="Mes y año de vencimiento, tal como aparece en la tarjeta. Ej: 12/28" /></div>
                                     <input
                                         value={paymentForm.cardExpiration}
                                         onChange={e => handleExpiration(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") handlePay(res.id) }}
                                         placeholder="MM/AA"
                                         inputMode="numeric"
                                         style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${paymentErrors.cardExpiration ? "#e53e3e" : "#ddd"}`, fontSize: 14, boxSizing: "border-box" }}
@@ -452,10 +475,11 @@ const MyReservations = () => {
                                 </div>
                                 {/* CVV */}
                                 <div>
-                                    <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>CVV</div>
+                                    <div style={{ fontSize: 11, color: "#666", marginBottom: 4 }}>CVV<HelpTooltip text="Los 3 dígitos que están en el reverso de tu tarjeta" /></div>
                                     <input
                                         value={paymentForm.cvv}
                                         onChange={e => handleCvv(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter") handlePay(res.id) }}
                                         placeholder="123"
                                         inputMode="numeric"
                                         type="password"

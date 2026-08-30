@@ -3,7 +3,6 @@ package com.travelagency.backend.controllers;
 import com.travelagency.backend.entities.PackageEntity;
 import com.travelagency.backend.enums.PackageStatus;
 import com.travelagency.backend.services.PackageService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,10 +16,12 @@ import java.util.Map;
 @CrossOrigin("*")
 public class PackageController {
 
-    @Autowired
-    PackageService packageService;
+    private final PackageService packageService;
 
-    // POST /api/v1/packages/
+    public PackageController(PackageService packageService) {
+        this.packageService = packageService;
+    }
+
     // Crea un nuevo paquete turístico
     // ADMIN
     @PostMapping("/")
@@ -29,7 +30,6 @@ public class PackageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(packageService.savePackage(pkg));
     }
 
-    // GET /api/v1/packages/
     // Retorna todos los paquetes sin filtro de estado
     // ADMIN
     @GetMapping("/")
@@ -37,7 +37,6 @@ public class PackageController {
     public ResponseEntity<List<PackageEntity>> getAllPackages() {
         return ResponseEntity.ok(packageService.getAllPackages());
     }
-    // GET /api/v1/packages/{id}      admin y cliente
     // Retorna el detalle de un paquete específico
     // AUTENTICADO
     @GetMapping("/{id}")
@@ -45,7 +44,6 @@ public class PackageController {
         return ResponseEntity.ok(packageService.getPackageById(id));
     }
 
-    // GET /api/v1/packages/available
     // Épica 3: retorna paquetes disponibles con cupos y fechas válidas
     // PÚBLICO
     @GetMapping("/available")
@@ -53,7 +51,6 @@ public class PackageController {
         return ResponseEntity.ok(packageService.getAvailablePackages());
     }
 
-    // GET /api/v1/packages/search
     // Épica 3: búsqueda con filtros opcionales
     // PÚBLICO
 
@@ -68,7 +65,6 @@ public class PackageController {
                 packageService.searchPackage(destination, minPrice, maxPrice, tripType));
     }
 
-    // PUT /api/v1/packages/{id}
     // Actualiza datos de un paquete existente
     // ADMIN
     @PutMapping("/{id}")
@@ -79,7 +75,6 @@ public class PackageController {
         return ResponseEntity.ok(packageService.updatePackage(id, updates));
     }
 
-    // PATCH /api/v1/packages/{id}/status
     // Cambia SOLO el estado del paquete
     // ADMIN
     @PatchMapping("/{id}/status")

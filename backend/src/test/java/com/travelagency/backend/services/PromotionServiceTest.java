@@ -161,9 +161,10 @@ class PromotionServiceTest {
     void updatePromotion_nonExistingId_throwsIllegalArgument() {
         // Given
         when(promotionRepository.findById(99L)).thenReturn(Optional.empty());
+        PromotionEntity updates = new PromotionEntity();
 
         // When / Then
-        assertThatThrownBy(() -> promotionService.updatePromotion(99L, new PromotionEntity()))
+        assertThatThrownBy(() -> promotionService.updatePromotion(99L, updates))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("99");
     }

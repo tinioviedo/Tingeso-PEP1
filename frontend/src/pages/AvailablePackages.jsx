@@ -95,7 +95,7 @@ const PriceRangeSlider = ({ allPrices, minVal, maxVal, onMinChange, onMaxChange 
           const bucketEnd = bucketStart + bucketSize
           const active = bucketEnd > currentMin && bucketStart < currentMax
           return (
-            <div key={i} style={{
+            <div key={bucketStart} style={{
               flex: 1,
               height: `${Math.max((count / maxCount) * 100, 3)}%`,
               background: active ? "#0A2540" : "#e2e8f0",
@@ -238,6 +238,21 @@ const PackageCard = ({ pkg, onClick }) => {
 }
 
 /* ── Filter panel ─────────────────────────────────────────── */
+// Definidos a nivel de módulo (no dentro de FilterModal) para que React no los
+// vuelva a crear en cada render y pierda el estado del subárbol.
+const SectionTitle = ({ children }) => (
+  <div style={{
+    fontSize: 15, fontWeight: 700, color: "#0A2540",
+    marginBottom: 14, letterSpacing: -0.2,
+  }}>
+    {children}
+  </div>
+)
+
+const Divider = () => (
+  <div style={{ height: 1, background: "#f1f5f9", margin: "20px 0" }} />
+)
+
 const FilterModal = ({ open, onClose, filters, onChange, onApply, onClear, count, allPrices }) => {
   if (!open) return null
 
@@ -250,19 +265,6 @@ const FilterModal = ({ open, onClose, filters, onChange, onApply, onClear, count
     fontFamily: "'Poppins', sans-serif",
     boxSizing: "border-box",
   }
-
-  const SectionTitle = ({ children }) => (
-    <div style={{
-      fontSize: 15, fontWeight: 700, color: "#0A2540",
-      marginBottom: 14, letterSpacing: -0.2,
-    }}>
-      {children}
-    </div>
-  )
-
-  const Divider = () => (
-    <div style={{ height: 1, background: "#f1f5f9", margin: "20px 0" }} />
-  )
 
   return (
     <>

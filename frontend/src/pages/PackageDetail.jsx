@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useKeycloak } from "@react-keycloak/web"
 import packageService from "../services/package.service"
 import reservationService from "../services/reservation.service"
 import clientService from "../services/client.service"
-import { getPackageImage } from "../utils/packageImages"
+import HelpTooltip from "../components/HelpTooltip"
 
 const SuccessOverlay = ({ data, onGo }) => {
   const [count, setCount] = useState(5)
-  const navigate = useNavigate()
 
   useEffect(() => {
     if (count === 0) { onGo(); return }
@@ -105,10 +104,15 @@ const PackageDetail = () => {
   const [pkg, setPkg] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [companions, setCompanions] = useState([])
+  // Identificador estable por acompañante: se usa como key de React para que
+  // los campos no se mezclen al agregar o quitar pasajeros.
+  const nextCompanionId = useRef(0)
   const [loading, setLoading] = useState(true)
   const [reserving, setReserving] = useState(false)
   const [reservationData, setReservationData] = useState(null)
   const [error, setError] = useState("")
+  const [clientId, setClientId] = useState(null)
+  const [quote, setQuote] = useState(null) // { discountAmount, totalAmount, appliedDiscounts } — cotización REAL del backend
 
   useEffect(() => {
     packageService.getById(id)
@@ -117,21 +121,56 @@ const PackageDetail = () => {
       .finally(() => setLoading(false))
   }, [id])
 
+  // Averigua el clientId una sola vez, si el usuario está logueado y tiene perfil.
+  useEffect(() => {
+    const email = keycloak.tokenParsed?.email
+    if (!keycloak.authenticated || !email) return
+    clientService.getByEmail(email)
+      .then(res => setClientId(res.data.id))
+      .catch(() => setClientId(null)) // perfil incompleto — se resuelve al confirmar, como antes
+  }, [keycloak.authenticated])
+
+  // Cotización real (con descuentos) cada vez que cambia la cantidad de pasajeros.
+  // Reemplaza el cálculo hardcodeado que no coincidía con los descuentos reales.
+  useEffect(() => {
+    if (!clientId || !pkg) { setQuote(null); return }
+    reservationService.quote(clientId, pkg.id, quantity)
+      .then(res => setQuote(res.data))
+      .catch(() => setQuote(null))
+  }, [clientId, pkg, quantity])
+
   const rutRegex = /^\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]$/
+
+  // Devuelve el mensaje del primer acompañante inválido, o null si todos están correctos.
+  const validateCompanions = () => {
+    if (quantity <= 1) return null
+    for (let i = 0; i < companions.length; i++) {
+      const c = companions[i]
+      if (!c.name.trim()) return `Ingresa el nombre del acompañante ${i + 1}.`
+      if (!c.rut.trim()) return `Ingresa el RUT del acompañante ${i + 1}.`
+      if (!rutRegex.test(c.rut.trim())) {
+        return `RUT del acompañante ${i + 1} no es válido. Usa el formato 12.345.678-9`
+      }
+    }
+    return null
+  }
+
+  // Un 400/404 al crear la reserva significa que el cliente aún no tiene perfil completo.
+  const reservationErrorMessage = (err) => {
+    const status = err.response?.status
+    if (status === 404 || status === 400) {
+      return <span>Debes completar todos tus datos en <span onClick={() => navigate("/profile")} style={{ textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}>Mi perfil</span> antes de realizar una reserva.</span>
+    }
+    return err.response?.data?.message || "Error al crear la reserva."
+  }
+
   const handleReserve = () => {
     setError("")
     const email = keycloak.tokenParsed?.email
     if (!email) { setError("No se pudo identificar al usuario. Por favor inicia sesión nuevamente."); return }
 
-    // Validate companions
-    if (quantity > 1) {
-      for (let i = 0; i < companions.length; i++) {
-        const c = companions[i]
-        if (!c.name.trim()) { setError(`Ingresa el nombre del acompañante ${i + 1}.`); return }
-        if (!c.rut.trim()) { setError(`Ingresa el RUT del acompañante ${i + 1}.`); return }
-        if (!rutRegex.test(c.rut.trim())) { setError(`RUT del acompañante ${i + 1} no es válido. Usa el formato 12.345.678-9`); return }
-      }
-    }
+    const companionError = validateCompanions()
+    if (companionError) { setError(companionError); return }
 
     setReserving(true)
     const companionsStr = companions
@@ -150,13 +189,7 @@ const PackageDetail = () => {
           discounts: res.data.appliedDiscounts || null,
         })
       })
-      .catch(err => {
-        if (err.response?.status === 404 || err.response?.status === 400) {
-          setError(<span>Debes completar todos tus datos en <span onClick={() => navigate("/profile")} style={{ textDecoration: "underline", cursor: "pointer", fontWeight: 700 }}>Mi perfil</span> antes de realizar una reserva.</span>)
-        } else {
-          setError(err.response?.data?.message || "Error al crear la reserva.")
-        }
-      })
+      .catch(err => setError(reservationErrorMessage(err)))
       .finally(() => setReserving(false))
   }
 
@@ -164,8 +197,24 @@ const PackageDetail = () => {
   if (!pkg) return <p style={{ color: "#888", padding: 24 }}>Paquete no encontrado.</p>
 
   const baseAmount = pkg.price * quantity
-  const estimatedTotal = quantity >= 6 ? baseAmount * 0.90 : baseAmount
-  const heroImage = getPackageImage(pkg.destination, pkg.packageName)
+  // Mientras no haya cotización del backend (cargando, o usuario sin perfil/no logueado
+  // todavía), se muestra el monto base sin descuento — nunca se inventa un porcentaje.
+  const estimatedTotal = quote ? quote.totalAmount : baseAmount
+  const isAvailable = pkg.packageStatus === "AVAILABLE"
+
+  // Texto del botón de reserva según el estado actual de la operación.
+  let reserveLabel = "No disponible"
+  if (reserving) reserveLabel = "Procesando..."
+  else if (isAvailable) reserveLabel = "Reservar ahora"
+
+  const loginLabel = isAvailable ? "Inicia sesión para reservar" : "No disponible"
+
+  // Ambos botones (invitado y autenticado) comparten exactamente el mismo estilo.
+  const reserveButtonStyle = {
+    width: "100%", background: isAvailable ? "#F58426" : "#ccc",
+    color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
+    fontSize: 15, fontWeight: 500, cursor: isAvailable ? "pointer" : "not-allowed",
+  }
 
   return (
     <div style={{ margin: "-24px 0" }}>
@@ -284,7 +333,10 @@ const PackageDetail = () => {
                 setQuantity(next)
                 setCompanions(c => {
                   const arr = [...c]
-                  while (arr.length < next - 1) arr.push({ name: "", rut: "" })
+                  while (arr.length < next - 1) {
+                    nextCompanionId.current += 1
+                    arr.push({ id: nextCompanionId.current, name: "", rut: "" })
+                  }
                   return arr
                 })
               }} style={{
@@ -292,9 +344,9 @@ const PackageDetail = () => {
                 background: "#006BB6", color: "#fff", cursor: "pointer", fontSize: 18, fontWeight: 300
               }}>+</button>
             </div>
-            {quantity >= 6 && (
+            {quote?.discountAmount > 0 && (
               <div style={{ marginTop: 10, fontSize: 12, color: "#3B6D11", background: "#EAF3DE", padding: "6px 10px", borderRadius: 6 }}>
-                ¡Descuento grupal aplicado!
+                ¡Descuento aplicado!
               </div>
             )}
           </div>
@@ -302,9 +354,9 @@ const PackageDetail = () => {
           {/* Acompañantes — solo si hay más de 1 pasajero */}
           {quantity > 1 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: "#666", marginBottom: 10, fontWeight: 500 }}>DATOS DE ACOMPAÑANTES</div>
+              <div style={{ fontSize: 12, color: "#666", marginBottom: 10, fontWeight: 500 }}>DATOS DE ACOMPAÑANTES<HelpTooltip text="Necesitamos el nombre y RUT de cada pasajero adicional para completar su registro en el paquete" /></div>
               {companions.map((c, i) => (
-                <div key={i} style={{ marginBottom: 10, background: "#f5f5f5", borderRadius: 10, padding: "12px 14px" }}>
+                <div key={c.id} style={{ marginBottom: 10, background: "#f5f5f5", borderRadius: 10, padding: "12px 14px" }}>
                   <div style={{ fontSize: 11, color: "#888", marginBottom: 8 }}>Acompañante {i + 1}</div>
                   <input
                     value={c.name}
@@ -331,10 +383,17 @@ const PackageDetail = () => {
               <span>US$ {pkg.price.toLocaleString()} × {quantity}</span>
               <span>US$ {baseAmount.toLocaleString()}</span>
             </div>
-            {quantity >= 6 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", color: "#3B6D11" }}>
-                <span>Descuento grupal (10%)</span>
-                <span>−US$ {(baseAmount * 0.10).toLocaleString()}</span>
+            {quote?.discountAmount > 0 && (
+              <div style={{ padding: "5px 0", color: "#3B6D11" }}>
+                {quote.appliedDiscounts.split(", ").map(label => (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 2 }}>
+                    <span>{label}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 500 }}>
+                  <span>Total descuento</span>
+                  <span>−US$ {quote.discountAmount.toLocaleString()}</span>
+                </div>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 500, padding: "12px 0", borderTop: "1px solid #eee", marginTop: 8 }}>
@@ -350,20 +409,12 @@ const PackageDetail = () => {
           {error && <div style={{ background: "#FCEBEB", color: "#A32D2D", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{error}</div>}
 
           {!keycloak.authenticated ? (
-            <button onClick={() => keycloak.login()} disabled={pkg.packageStatus !== "AVAILABLE"} style={{
-              width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",
-              color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
-              fontSize: 15, fontWeight: 500, cursor: pkg.packageStatus === "AVAILABLE" ? "pointer" : "not-allowed"
-            }}>
-              {pkg.packageStatus === "AVAILABLE" ? "Inicia sesión para reservar" : "No disponible"}
+            <button onClick={() => keycloak.login()} disabled={!isAvailable} style={reserveButtonStyle}>
+              {loginLabel}
             </button>
           ) : (
-            <button onClick={handleReserve} disabled={reserving || pkg.packageStatus !== "AVAILABLE"} style={{
-              width: "100%", background: pkg.packageStatus === "AVAILABLE" ? "#F58426" : "#ccc",
-              color: "#fff", border: "none", padding: "14px 0", borderRadius: 10,
-              fontSize: 15, fontWeight: 500, cursor: pkg.packageStatus === "AVAILABLE" ? "pointer" : "not-allowed"
-            }}>
-              {reserving ? "Procesando..." : pkg.packageStatus === "AVAILABLE" ? "Reservar ahora" : "No disponible"}
+            <button onClick={handleReserve} disabled={reserving || !isAvailable} style={reserveButtonStyle}>
+              {reserveLabel}
             </button>
           )}
         </div>

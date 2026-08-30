@@ -4,11 +4,13 @@ import MenuIcon from "@mui/icons-material/Menu"
 import { useKeycloak } from "@react-keycloak/web"
 import { useNavigate, useLocation } from "react-router-dom"
 import Sidemenu from "./Sidemenu"
+import FaqModal from "./FaqModal"
 
 export default function Navbar() {
   const { keycloak } = useKeycloak()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [faqOpen, setFaqOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const isLoggedIn = keycloak.authenticated
@@ -100,6 +102,18 @@ export default function Navbar() {
 
           {/* Derecha */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            <button
+              onClick={() => setFaqOpen(true)}
+              aria-label="Preguntas frecuentes"
+              style={{
+                width: 28, height: 28, borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)",
+                color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", flexShrink: 0,
+              }}
+            >
+              ?
+            </button>
             <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.15)", marginRight: 4 }} />
 
             {isLoggedIn ? (
@@ -131,12 +145,22 @@ export default function Navbar() {
       </div>
 
       <Sidemenu open={open} onClose={() => setOpen(false)} />
+      <FaqModal open={faqOpen} onClose={() => setFaqOpen(false)} />
     </>
   )
 }
 
 function NavLink({ label, active, onClick }) {
   const [hovered, setHovered] = useState(false)
+
+  // El enlace se resalta tanto si está activo como si el mouse está encima.
+  const highlighted = active || hovered
+
+  // Ancho del subrayado según el estado del enlace.
+  let underlineWidth = "0%"
+  if (active) underlineWidth = "55%"
+  else if (hovered) underlineWidth = "30%"
+
   return (
     <button
       onClick={onClick}
@@ -144,7 +168,7 @@ function NavLink({ label, active, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: "none", border: "none",
-        color: active ? "#fff" : hovered ? "#fff" : "rgba(255,255,255,0.62)",
+        color: highlighted ? "#fff" : "rgba(255,255,255,0.62)",
         fontFamily: "'Poppins', sans-serif",
         fontSize: 14, fontWeight: active ? 600 : 500,
         padding: "8px 14px",
@@ -158,7 +182,7 @@ function NavLink({ label, active, onClick }) {
       <div style={{
         position: "absolute", bottom: 2, left: "50%",
         transform: "translateX(-50%)",
-        width: active ? "55%" : hovered ? "30%" : "0%",
+        width: underlineWidth,
         height: 2.5, borderRadius: 2,
         background: "#F97316",
         transition: "width 0.2s ease",

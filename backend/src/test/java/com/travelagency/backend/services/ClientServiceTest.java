@@ -215,9 +215,10 @@ class ClientServiceTest {
         // Given
         validClient.setActive(false);
         when(clientRepository.findById(1L)).thenReturn(Optional.of(validClient));
+        ClientEntity updates = new ClientEntity();
 
         // When / Then
-        assertThatThrownBy(() -> clientService.updateClient(1L, new ClientEntity()))
+        assertThatThrownBy(() -> clientService.updateClient(1L, updates))
                 .isInstanceOf(IllegalStateException.class);
     }
 

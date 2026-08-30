@@ -6,7 +6,6 @@ import com.travelagency.backend.enums.PaymentMethod;
 import com.travelagency.backend.enums.PaymentStatus;
 import com.travelagency.backend.enums.ReservationStatus;
 import com.travelagency.backend.repositories.PaymentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +13,14 @@ import java.util.List;
 @Service
 public class PaymentService {
 
-    @Autowired
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
+    private final ReservationService reservationService;
 
-    @Autowired
-    private ReservationService reservationService;
+    public PaymentService(PaymentRepository paymentRepository,
+                          ReservationService reservationService) {
+        this.paymentRepository = paymentRepository;
+        this.reservationService = reservationService;
+    }
 
     public PaymentEntity processPayment(Long reservationId, String cardNumber,
                                         String cardExpiration, String cardCvv) {
